@@ -1,200 +1,193 @@
-/* Apple Product Design System — Voice Memos & Dynamic Island Aesthetic */
+/* Gen-Z & Inspiration Fest (GIF) Creative Agency Aesthetic — Neo-Brutalist & Anti-Slop */
 :root {
-  --font-apple: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
-  --font-mono: "SF Mono", "JetBrains Mono", Menlo, monospace;
+  --font-syne: 'Syne', -apple-system, sans-serif;
+  --font-space: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
   
-  --apple-black: #000000;
-  --apple-gray-900: #0C0C0E;
-  --apple-gray-800: #1C1C1E;
-  --apple-gray-700: #2C2C2E;
-  --apple-gray-600: #3A3A3C;
-  --apple-gray-400: #8E8E93;
-  --apple-gray-200: #D1D1D6;
+  --bg-noir: #090A0D;
+  --bg-card: #13141A;
+  --bg-elevated: #1B1D26;
   
-  --apple-orange: #FF9F0A;
-  --apple-orange-glow: rgba(255, 159, 10, 0.35);
-  --apple-blue: #0A84FF;
-  --apple-blue-glow: rgba(10, 132, 255, 0.35);
-  --apple-green: #30D158;
-  --apple-red: #FF453A;
-  --apple-purple: #BF5AF2;
-
-  --ease-apple: cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
+  --acid-lime: #CCFF00;
+  --acid-lime-glow: rgba(204, 255, 0, 0.35);
+  --hyper-violet: #8B5CF6;
+  --hyper-pink: #FF1F6D;
+  --cyber-cyan: #00F5D4;
+  --solar-amber: #FFB703;
 }
 
 body {
-  font-family: var(--font-apple);
-  background-color: var(--apple-black);
-  color: #FFFFFF;
-  letter-spacing: -0.015em;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: var(--font-space);
+  background-color: var(--bg-noir);
+  color: #F8FAFC;
+  overflow-x: hidden;
   background-image: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(10, 132, 255, 0.12), transparent 70%),
-    radial-gradient(ellipse 60% 40% at 50% 120%, rgba(255, 159, 10, 0.08), transparent 70%);
+    radial-gradient(circle at 10% 15%, rgba(204, 255, 0, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 85%, rgba(139, 92, 246, 0.1) 0%, transparent 45%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
   background-attachment: fixed;
 }
 
-/* Apple Frosted Glass with Specular Highlights */
-.apple-glass {
-  background: rgba(28, 28, 30, 0.65);
-  backdrop-filter: blur(35px) saturate(190%);
-  -webkit-backdrop-filter: blur(35px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.12),
-    0 20px 40px -15px rgba(0, 0, 0, 0.7);
+.font-syne {
+  font-family: var(--font-syne);
 }
 
-.apple-card {
-  background: var(--apple-gray-900);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
-    0 12px 32px rgba(0, 0, 0, 0.6);
-  transition: all 0.35s var(--ease-apple);
+.font-space {
+  font-family: var(--font-space);
 }
 
-.apple-card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
-  transform: translateY(-1px);
+.font-mono {
+  font-family: var(--font-mono);
 }
 
-/* Apple Spring Tap Physics */
-.apple-press {
-  transition: transform 0.18s var(--ease-apple), opacity 0.18s var(--ease-apple);
-}
-.apple-press:active {
-  transform: scale(0.96);
-  opacity: 0.85;
+/* Neo-Brutalist Brutal Shadow & Border Tokens */
+.brutal-card {
+  background: var(--bg-card);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 4px 4px 0px 0px rgba(255, 255, 255, 0.12);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Apple iOS Segmented Control */
-.apple-segment-container {
-  background: rgba(255, 255, 255, 0.06);
-  padding: 3px;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.brutal-card:hover {
+  border-color: var(--acid-lime);
+  box-shadow: 5px 5px 0px 0px var(--acid-lime);
+  transform: translate(-1px, -1px);
+}
+
+.brutal-btn-lime {
+  background: var(--acid-lime);
+  color: #000000;
+  font-family: var(--font-syne);
+  font-weight: 800;
+  border: 2px solid #000000;
+  box-shadow: 3px 3px 0px 0px #FFFFFF;
+  transition: all 0.15s ease;
+}
+
+.brutal-btn-lime:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0px 0px #FFFFFF;
+}
+
+.brutal-btn-lime:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px 0px #FFFFFF;
+}
+
+/* Sticker Badges */
+.sticker {
   display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1.5px solid #000000;
+  box-shadow: 2px 2px 0px 0px #000000;
 }
 
-.apple-segment-item {
-  position: relative;
-  border-radius: 9999px;
-  padding: 5px 14px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--apple-gray-400);
-  transition: color 0.2s var(--ease-apple);
-  cursor: pointer;
+/* Marquee Ticker Tape */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 24s linear infinite;
 }
 
-.apple-segment-item.active {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+.marquee-track:hover {
+  animation-play-state: paused;
 }
 
-/* Apple Voice Memos Ripple Glow */
-.record-pulse-ring {
-  position: relative;
-}
-.record-pulse-ring::after {
-  content: "";
-  position: absolute;
-  inset: -6px;
-  border-radius: 9999px;
-  border: 2px solid var(--apple-red);
-  opacity: 0.8;
-  animation: apple-ripple 1.6s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
-@keyframes apple-ripple {
-  0% { transform: scale(0.95); opacity: 0.9; }
-  100% { transform: scale(1.4); opacity: 0; }
-}
-
-/* Apple Dynamic Waveform Canvas */
+/* Boombox VU Meter Canvas */
 #waveformCanvas {
   width: 100%;
-  height: 64px;
+  height: 80px;
   display: block;
+  border-radius: 12px;
 }
 
-/* Custom Apple Music Scrubber */
-input[type=range].apple-slider {
+/* Recording Cassette LED Pulse */
+.rec-led {
+  animation: led-blink 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes led-blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.85); }
+}
+
+/* Dialogue Dialogue Segment (Zine Style) */
+.zine-segment {
+  border-left: 3px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.zine-segment:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-left-color: rgba(255, 255, 255, 0.2);
+}
+
+.zine-segment.active-segment {
+  background: rgba(204, 255, 0, 0.08) !important;
+  border-left-color: var(--acid-lime) !important;
+  box-shadow: inset 0 0 24px rgba(204, 255, 0, 0.04);
+}
+
+/* Floating Boombox Transport Player */
+.boombox-dock {
+  background: #111218;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 6px 6px 0px 0px var(--acid-lime);
+}
+
+/* Custom Neon Range Scrubber */
+input[type=range].neon-slider {
   -webkit-appearance: none;
-  background: rgba(255, 255, 255, 0.15);
-  height: 4px;
+  background: #252836;
+  height: 6px;
   border-radius: 999px;
   outline: none;
   cursor: pointer;
-  transition: height 0.15s ease, background 0.15s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-input[type=range].apple-slider:hover {
-  height: 6px;
-  background: rgba(255, 255, 255, 0.25);
-}
-
-input[type=range].apple-slider::-webkit-slider-thumb {
+input[type=range].neon-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #FFFFFF;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--acid-lime);
+  border: 2px solid #000000;
+  box-shadow: 2px 2px 0px #FFFFFF;
   cursor: pointer;
-  transition: transform 0.12s var(--ease-apple);
+  transition: transform 0.1s ease;
 }
 
-input[type=range].apple-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.4);
+input[type=range].neon-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.3) rotate(4deg);
 }
 
-/* Transcript Dialogue Bubble (iOS Message / Notes feel) */
-.dialogue-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
-  transition: all 0.25s var(--ease-apple);
-}
-
-.transcript-sentence {
-  border-radius: 12px;
-  padding: 6px 10px;
-  margin: 1px 0;
-  transition: all 0.2s var(--ease-apple);
-  cursor: pointer;
-}
-
-.transcript-sentence:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.transcript-sentence.active-sentence {
-  background: rgba(10, 132, 255, 0.18) !important;
-  color: #FFFFFF;
-  box-shadow: inset 0 0 0 1px rgba(10, 132, 255, 0.4);
-}
-
-/* Scrollbar Minimal */
+/* Minimal Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--bg-noir);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
+  background: #2B2E3D;
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--acid-lime);
 }
