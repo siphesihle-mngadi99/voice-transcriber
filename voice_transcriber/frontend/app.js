@@ -1,28 +1,44 @@
-// VoiceScribe — Inspiration Fest (GIF) / Gen-Z Neo-Brutalist Engine
+// VoiceScribe — Danstheater AYA Theatrical Brutalist Stage Engine
 document.addEventListener("DOMContentLoaded", () => {
   if (window.lucide) {
     lucide.createIcons();
   }
 
-  // State
+  // --- 1. Initialize Lenis Smooth Scroll ---
+  let lenisInstance = null;
+  if (window.Lenis) {
+    try {
+      lenisInstance = new Lenis({
+        duration: 1.2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        smoothWheel: true,
+      });
+      function raf(time) {
+        lenisInstance.raf(time);
+        requestAnimationFrame(raf);
+      }
+      requestAnimationFrame(raf);
+    } catch (e) {
+      console.warn("Lenis initialization skipped", e);
+    }
+  }
+
+  // --- 2. State Management ---
   let currentRecordingId = null;
   let currentSegments = [];
   let eventSource = null;
   let selectedFile = null;
   let selectedModel = "base";
   let targetRenameTag = null;
-  let isDraggingScrubber = false;
+  let wavesurfer = null;
 
-  // Audio & Recording State
+  // Recording State
   let mediaRecorder = null;
   let audioChunks = [];
   let isRecording = false;
   let recordingTimer = null;
   let recordingSeconds = 0;
-  let audioCtx = null;
-  let analyser = null;
   let micStream = null;
-  let animationFrameId = null;
   const speeds = [1.0, 1.25, 1.5, 2.0, 0.75];
   let currentSpeedIdx = 0;
 
@@ -48,8 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const micSubtext = document.getElementById("micSubtext");
   const diarizationToggle = document.getElementById("diarizationToggle");
   const startTranscribeBtn = document.getElementById("startTranscribeBtn");
-  const waveformCanvas = document.getElementById("waveformCanvas");
-  const canvasCaption = document.getElementById("canvasCaption");
 
   // Progress Elements
   const progressContainer = document.getElementById("progressContainer");
@@ -67,8 +81,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const copyTranscriptBtn = document.getElementById("copyTranscriptBtn");
   const exportMenuBtn = document.getElementById("exportMenuBtn");
   const exportDropdown = document.getElementById("exportDropdown");
+  const waveformTimeDisplay = document.getElementById("waveformTimeDisplay");
 
-  // Zine Tabs
+  // Screenplay Tabs
   const tabTranscriptBtn = document.getElementById("tabTranscriptBtn");
   const tabSummaryBtn = document.getElementById("tabSummaryBtn");
   const tabAnalyticsBtn = document.getElementById("tabAnalyticsBtn");
@@ -80,13 +95,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const outlineList = document.getElementById("outlineList");
   const speakerStatsFeed = document.getElementById("speakerStatsFeed");
 
-  // Boombox Transport Elements
-  const audioPlayer = document.getElementById("audioPlayer");
+  // Floating Console Elements
   const playPauseBtn = document.getElementById("playPauseBtn");
   const playIcon = document.getElementById("playIcon");
   const skipBackBtn = document.getElementById("skipBackBtn");
   const skipForwardBtn = document.getElementById("skipForwardBtn");
-  const audioScrubber = document.getElementById("audioScrubber");
   const currentTimeDisplay = document.getElementById("currentTimeDisplay");
   const totalTimeDisplay = document.getElementById("totalTimeDisplay");
   const speedCycleBtn = document.getElementById("speedCycleBtn");
@@ -97,84 +110,104 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveRenameBtn = document.getElementById("saveRenameBtn");
   const cancelRenameBtn = document.getElementById("cancelRenameBtn");
 
-  // Speaker Festival Stamps
-  const SPEAKER_STAMPS = [
-    { badge: "bg-[#CCFF00] text-black", border: "border-[#CCFF00]" },
-    { badge: "bg-[#00F5D4] text-black", border: "border-[#00F5D4]" },
-    { badge: "bg-[#FF1F6D] text-white", border: "border-[#FF1F6D]" },
-    { badge: "bg-[#8B5CF6] text-white", border: "border-[#8B5CF6]" },
+  // Theatrical Stage Lighting Performer Badges
+  const PERFORMER_PALETTES = [
+    { badge: "text-blue-400 border-blue-500/40 bg-blue-500/10", dot: "bg-blue-400" },
+    { badge: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10", dot: "bg-emerald-400" },
+    { badge: "text-rose-400 border-rose-500/40 bg-rose-500/10", dot: "bg-rose-400" },
+    { badge: "text-purple-400 border-purple-500/40 bg-purple-500/10", dot: "bg-purple-400" },
   ];
 
-  // --- Initial Setup ---
-  initSynthCanvas();
+  // --- Initial Load ---
   loadRecordingsList();
 
-  // --- Multi-Color Synth Waveform Canvas ---
-  function initSynthCanvas() {
-    const ctx = waveformCanvas.getContext("2d");
-    let step = 0;
-
-    function renderLoop() {
-      if (isRecording) return; // Handled by live mic analyzer
-      ctx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
-      const w = waveformCanvas.width;
-      const h = waveformCanvas.height;
-      const bars = 40;
-      const barW = (w / bars) - 3;
-
-      const colors = ["#CCFF00", "#00F5D4", "#FF1F6D", "#8B5CF6"];
-
-      for (let i = 0; i < bars; i++) {
-        const factor = Math.sin((i / bars) * Math.PI * 3 + step);
-        const isPlaying = audioPlayer && !audioPlayer.paused;
-        const amplitude = isPlaying ? (factor * 0.5 + 0.5) * (h * 0.75) : (factor * 0.3 + 0.3) * (h * 0.35);
-        const barH = Math.max(6, amplitude);
-        const y = (h - barH) / 2;
-
-        ctx.fillStyle = isPlaying ? colors[i % colors.length] : "#2A2D3C";
-        ctx.fillRect(i * (barW + 3), y, barW, barH);
+  // --- 3. WaveSurfer.js Real Waveform Initialization ---
+  function initWaveSurfer(audioUrl) {
+    if (wavesurfer) {
+      try {
+        wavesurfer.destroy();
+      } catch (e) {
+        console.warn(e);
       }
-
-      step += audioPlayer && !audioPlayer.paused ? 0.08 : 0.03;
-      animationFrameId = requestAnimationFrame(renderLoop);
     }
 
-    const dpr = window.devicePixelRatio || 1;
-    waveformCanvas.width = waveformCanvas.offsetWidth * dpr;
-    waveformCanvas.height = waveformCanvas.offsetHeight * dpr;
-    ctx.scale(dpr, dpr);
+    const container = document.getElementById("waveformContainer");
+    container.innerHTML = "";
 
-    renderLoop();
+    wavesurfer = WaveSurfer.create({
+      container: container,
+      waveColor: "#27272A",
+      progressColor: "#2563EB",
+      cursorColor: "#FF2D55",
+      cursorWidth: 2,
+      barWidth: 2,
+      barGap: 2,
+      barRadius: 2,
+      height: 72,
+      normalize: true,
+      url: audioUrl,
+    });
+
+    wavesurfer.on("ready", () => {
+      const duration = wavesurfer.getDuration();
+      totalTimeDisplay.textContent = formatTime(duration);
+      waveformTimeDisplay.textContent = `00:00 / ${formatTime(duration)}`;
+    });
+
+    wavesurfer.on("timeupdate", (currentTime) => {
+      currentTimeDisplay.textContent = formatTime(currentTime);
+      waveformTimeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(wavesurfer.getDuration())}`;
+
+      // Karaoke line sync
+      let foundActive = false;
+      currentSegments.forEach((seg, idx) => {
+        const el = document.getElementById(`segment-${idx}`);
+        if (!el) return;
+
+        if (!foundActive && currentTime >= seg.start_time && currentTime <= seg.end_time) {
+          if (!el.classList.contains("active-line")) {
+            document.querySelectorAll(".active-line").forEach((i) => i.classList.remove("active-line"));
+            el.classList.add("active-line");
+            el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }
+          foundActive = true;
+        }
+      });
+    });
+
+    wavesurfer.on("play", () => setPlayState(true));
+    wavesurfer.on("pause", () => setPlayState(false));
+    wavesurfer.on("finish", () => setPlayState(false));
   }
 
-  // --- Model Pills Selection ---
+  // --- Model Engine Selection ---
   document.querySelectorAll(".model-pill").forEach((btn) => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".model-pill").forEach((b) => {
-        b.classList.remove("bg-[#CCFF00]", "text-black", "font-black");
+        b.classList.remove("bg-[#2563EB]", "text-white");
         b.classList.add("text-neutral-400");
       });
-      btn.classList.add("bg-[#CCFF00]", "text-black", "font-black");
+      btn.classList.add("bg-[#2563EB]", "text-white");
       btn.classList.remove("text-neutral-400");
       selectedModel = btn.dataset.model;
     });
   });
 
-  // --- File Drop & Select ---
+  // --- Drag & Drop Audio File ---
   dropzone.addEventListener("click", () => fileInput.click());
 
   dropzone.addEventListener("dragover", (e) => {
     e.preventDefault();
-    dropzone.classList.add("border-[#CCFF00]", "scale-[1.01]");
+    dropzone.classList.add("border-blue-500", "scale-[1.01]");
   });
 
   dropzone.addEventListener("dragleave", () => {
-    dropzone.classList.remove("border-[#CCFF00]", "scale-[1.01]");
+    dropzone.classList.remove("border-blue-500", "scale-[1.01]");
   });
 
   dropzone.addEventListener("drop", (e) => {
     e.preventDefault();
-    dropzone.classList.remove("border-[#CCFF00]", "scale-[1.01]");
+    dropzone.classList.remove("border-blue-500", "scale-[1.01]");
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFile(e.dataTransfer.files[0]);
     }
@@ -191,7 +224,6 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedFileBanner.classList.add("hidden");
     startTranscribeBtn.disabled = true;
     fileInput.value = "";
-    canvasCaption.textContent = "STANDBY // READY FOR SIGNAL";
   });
 
   function handleFile(file) {
@@ -200,21 +232,13 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedFileName.textContent = `${file.name} [${mb} MB]`;
     selectedFileBanner.classList.remove("hidden");
     startTranscribeBtn.disabled = false;
-    canvasCaption.textContent = `LOADED: ${file.name.toUpperCase()}`;
   }
 
-  // --- Boombox Cassette Mic Recording with Live Analyser ---
+  // --- Voice Memo Mic Recording (Theatrical Stage Red LED) ---
   micRecordCard.addEventListener("click", async () => {
     if (!isRecording) {
       try {
         micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 64;
-
-        const source = audioCtx.createMediaStreamSource(micStream);
-        source.connect(analyser);
-
         mediaRecorder = new MediaRecorder(micStream);
         audioChunks = [];
         recordingSeconds = 0;
@@ -232,27 +256,23 @@ document.addEventListener("DOMContentLoaded", () => {
           );
           handleFile(recordedFile);
           micStream.getTracks().forEach((t) => t.stop());
-          if (audioCtx) audioCtx.close();
         };
 
         mediaRecorder.start();
         isRecording = true;
 
-        // Visual cassette REC state
-        micLed.classList.add("bg-[#FF1F6D]", "rec-led");
+        micLed.classList.add("bg-rose-500", "animate-ping");
+        micRecordBtn.classList.add("stage-rec-pulse");
         micInnerDot.classList.remove("rounded-full");
         micInnerDot.classList.add("rounded-sm");
         micLabel.textContent = "RECORDING NOW";
-        canvasCaption.textContent = "LIVE AUDIO SPECTRUM CAPTURE";
 
         recordingTimer = setInterval(() => {
           recordingSeconds++;
           const m = String(Math.floor(recordingSeconds / 60)).padStart(2, "0");
           const s = String(recordingSeconds % 60).padStart(2, "0");
-          micSubtext.textContent = `TAPE RUNNING: ${m}:${s} [TAP TO FINISH]`;
+          micSubtext.textContent = `LIVE CAPTURE: ${m}:${s} [TAP TO FINISH]`;
         }, 1000);
-
-        renderLiveMicSpectrum();
 
       } catch (err) {
         alert("Mic permission required: " + err.message);
@@ -264,45 +284,16 @@ document.addEventListener("DOMContentLoaded", () => {
       isRecording = false;
       clearInterval(recordingTimer);
 
-      micLed.classList.remove("bg-[#FF1F6D]", "rec-led");
+      micLed.classList.remove("bg-rose-500", "animate-ping");
+      micRecordBtn.classList.remove("stage-rec-pulse");
       micInnerDot.classList.add("rounded-full");
       micInnerDot.classList.remove("rounded-sm");
-      micLabel.textContent = "RECORD MEMO";
-      micSubtext.textContent = "Direct mic capture for phones & laptops";
-
-      initSynthCanvas();
+      micLabel.textContent = "CAPTURE VOICE MEMO";
+      micSubtext.textContent = "Direct microphone input for phones & PC";
     }
   });
 
-  function renderLiveMicSpectrum() {
-    if (!isRecording || !analyser) return;
-
-    const ctx = waveformCanvas.getContext("2d");
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-    analyser.getByteFrequencyData(dataArray);
-
-    const w = waveformCanvas.width;
-    const h = waveformCanvas.height;
-    ctx.clearRect(0, 0, w, h);
-
-    const bars = bufferLength;
-    const barW = (w / bars) - 2;
-    const colors = ["#FF1F6D", "#CCFF00", "#00F5D4", "#8B5CF6"];
-
-    for (let i = 0; i < bars; i++) {
-      const val = dataArray[i] / 255.0;
-      const barH = Math.max(4, val * h * 0.95);
-      const y = (h - barH) / 2;
-
-      ctx.fillStyle = colors[i % colors.length];
-      ctx.fillRect(i * (barW + 2), y, barW, barH);
-    }
-
-    requestAnimationFrame(renderLiveMicSpectrum);
-  }
-
-  // --- Execute Ingestion ---
+  // --- Start Transcription Upload ---
   startTranscribeBtn.addEventListener("click", async () => {
     if (!selectedFile) return;
 
@@ -310,7 +301,7 @@ document.addEventListener("DOMContentLoaded", () => {
     progressContainer.classList.remove("hidden");
     progressBar.style.width = "5%";
     progressPercent.textContent = "5%";
-    progressStatusText.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#CCFF00] animate-ping"></span> LAUNCHING LOCAL ENGINE...`;
+    progressStatusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span> INGESTING AUDIO STREAM...`;
 
     const formData = new FormData();
     formData.append("file", selectedFile);
@@ -340,7 +331,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- SSE Progress Stream ---
+  // --- SSE Real-time Progress ---
   function subscribeToEvents(recId) {
     if (eventSource) eventSource.close();
     eventSource = new EventSource(`/api/recordings/${recId}/events`);
@@ -354,7 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
         progressPercent.textContent = `${Math.round(progress)}%`;
 
         if (data.message) {
-          progressStatusText.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#CCFF00] animate-ping"></span> ${data.message.toUpperCase()}`;
+          progressStatusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span> ${data.message.toUpperCase()}`;
           liveTranscriptPreview.textContent = `> ${data.message}`;
         }
 
@@ -367,7 +358,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }, 800);
         } else if (progress < 0) {
           eventSource.close();
-          progressStatusText.innerHTML = `<span class="text-[#FF1F6D] font-bold">⚠️ ${data.message}</span>`;
+          progressStatusText.innerHTML = `<span class="text-rose-400 font-bold">⚠️ ${data.message}</span>`;
           startTranscribeBtn.disabled = false;
         }
       } catch (err) {
@@ -396,12 +387,13 @@ document.addEventListener("DOMContentLoaded", () => {
       totalTimeDisplay.textContent = formatTime(rec.duration || 0);
       segmentCount.textContent = `${currentSegments.length} segments`;
 
-      audioPlayer.src = `/api/audio/${recId}`;
+      // Initialize WaveSurfer
+      initWaveSurfer(`/api/audio/${recId}`);
       transcriptSection.classList.remove("hidden");
 
-      renderZineTranscript(currentSegments);
-      synthesizeCheatSheet(currentSegments);
-      renderTalkRadar(currentSegments);
+      renderScreenplay(currentSegments);
+      synthesizeStageNotes(currentSegments);
+      renderDialogueRadar(currentSegments);
 
       if (window.lucide) lucide.createIcons();
     } catch (err) {
@@ -409,37 +401,39 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- Tab 1: Render Zine Festival Dialogue ---
-  function renderZineTranscript(segments) {
+  // --- Tab 1: Render Screenplay Script Dialogue ---
+  function renderScreenplay(segments) {
     transcriptFeed.innerHTML = "";
     if (!segments || segments.length === 0) {
-      transcriptFeed.innerHTML = `<p class="text-xs font-mono text-neutral-400 italic p-4 text-center">No spoken signals captured.</p>`;
+      transcriptFeed.innerHTML = `<p class="text-xs font-mono text-neutral-400 italic p-4 text-center">NO DIALOGUE SIGNALS RECORDED ON STAGE.</p>`;
       return;
     }
 
-    const speakerMap = buildSpeakerStampMap(segments);
+    const performerMap = buildPerformerMap(segments);
     let lastSpeaker = null;
     let currentBlock = null;
 
     segments.forEach((seg, index) => {
       const speakerName = seg.speaker_name || seg.speaker || "Speaker 1";
       const speakerTag = seg.speaker || "Speaker 1";
-      const stamp = speakerMap[speakerTag] || SPEAKER_STAMPS[0];
+      const palette = performerMap[speakerTag] || PERFORMER_PALETTES[0];
 
       if (speakerName !== lastSpeaker) {
         lastSpeaker = speakerName;
         currentBlock = document.createElement("div");
-        currentBlock.className = `bg-[#13141A] border-2 border-white/15 rounded-xl p-5 space-y-2.5 shadow-[3px_3px_0px_#FFFFFF]`;
+        currentBlock.className = `bg-[#0B0C0F] border border-white/10 rounded-xl p-5 space-y-2.5`;
 
         const header = document.createElement("div");
         header.className = "flex items-center justify-between pb-2 border-b border-white/10";
 
         const speakerBadge = document.createElement("button");
-        speakerBadge.className = `sticker ${stamp.badge} cursor-pointer hover:scale-105 transition flex items-center gap-1.5`;
-        speakerBadge.title = "Tap to rename speaker";
+        speakerBadge.className = `backstage-pass ${palette.badge} cursor-pointer hover:border-white transition flex items-center gap-2`;
+        speakerBadge.title = "Tap to rename performer";
+
         speakerBadge.innerHTML = `
-          <span>${escapeHtml(speakerName.toUpperCase())}</span>
-          <i data-lucide="edit-3" class="w-3 h-3 ml-0.5"></i>
+          <span class="w-1.5 h-1.5 rounded-full ${palette.dot}"></span>
+          <span class="font-stage font-bold">${escapeHtml(speakerName.toUpperCase())}</span>
+          <i data-lucide="edit-3" class="w-3 h-3 opacity-60"></i>
         `;
         speakerBadge.addEventListener("click", () => openRenameModal(speakerTag, speakerName));
 
@@ -448,33 +442,35 @@ document.addEventListener("DOMContentLoaded", () => {
         transcriptFeed.appendChild(currentBlock);
       }
 
-      // Sentence Segment
-      const segItem = document.createElement("div");
-      segItem.id = `segment-${index}`;
-      segItem.className = "zine-segment p-2.5 rounded-lg flex items-start gap-3 cursor-pointer";
-      segItem.dataset.start = seg.start_time;
-      segItem.dataset.end = seg.end_time;
+      // Screenplay Line
+      const lineItem = document.createElement("div");
+      lineItem.id = `segment-${index}`;
+      lineItem.className = "script-line p-2.5 rounded-lg flex items-start gap-3 cursor-pointer";
+      lineItem.dataset.start = seg.start_time;
+      lineItem.dataset.end = seg.end_time;
 
-      segItem.innerHTML = `
-        <span class="font-mono text-[11px] text-[#CCFF00] font-bold shrink-0 pt-0.5 select-none">[${formatTime(seg.start_time)}]</span>
-        <p class="text-sm font-space text-neutral-200 hover:text-white leading-relaxed select-text flex-1">${escapeHtml(seg.text)}</p>
+      lineItem.innerHTML = `
+        <span class="font-mono text-[11px] text-blue-400 font-bold shrink-0 pt-0.5 select-none">[${formatTime(seg.start_time)}]</span>
+        <p class="text-sm font-body text-neutral-200 hover:text-white leading-relaxed select-text flex-1 font-light">${escapeHtml(seg.text)}</p>
       `;
 
-      segItem.addEventListener("click", () => {
+      lineItem.addEventListener("click", () => {
         if (window.getSelection().toString().length > 0) return;
-        audioPlayer.currentTime = seg.start_time;
-        audioPlayer.play();
-        setPlaying(true);
+        if (wavesurfer) {
+          wavesurfer.setTime(seg.start_time);
+          wavesurfer.play();
+          setPlayState(true);
+        }
       });
 
-      currentBlock.appendChild(segItem);
+      currentBlock.appendChild(lineItem);
     });
 
     if (window.lucide) lucide.createIcons();
   }
 
-  // --- Tab 2: Synthesize Cheat Sheet & Action Items ---
-  function synthesizeCheatSheet(segments) {
+  // --- Tab 2: Synthesize Stage Notes & Commitments ---
+  function synthesizeStageNotes(segments) {
     actionItemsList.innerHTML = "";
     outlineList.innerHTML = "";
     if (!segments || segments.length === 0) return;
@@ -499,15 +495,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (actions.length === 0) {
-      actionItemsList.innerHTML = `<li class="text-neutral-500 font-mono text-xs italic">No explicit commitment triggers detected.</li>`;
+      actionItemsList.innerHTML = `<li class="text-neutral-500 font-mono text-xs italic">No explicit commitments detected in script.</li>`;
     } else {
       actions.forEach((a) => {
         const li = document.createElement("li");
-        li.className = "p-3 rounded-lg bg-[#181920] border border-white/10 flex items-start gap-3";
+        li.className = "p-3 rounded-lg bg-[#111216] border border-white/10 flex items-start gap-3";
         li.innerHTML = `
-          <span class="sticker bg-[#CCFF00] text-black shrink-0 text-[9px] mt-0.5">${formatTime(a.time)}</span>
+          <span class="backstage-pass text-blue-400 border-blue-500/30 text-[9px] mt-0.5">${formatTime(a.time)}</span>
           <div class="flex-1">
-            <span class="font-mono font-bold text-xs text-[#00F5D4] uppercase">${escapeHtml(a.speaker)}:</span>
+            <span class="font-mono font-bold text-xs text-white uppercase">${escapeHtml(a.speaker)}:</span>
             <span class="text-neutral-200 ml-1 leading-relaxed">${escapeHtml(a.text)}</span>
           </div>
         `;
@@ -518,17 +514,17 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.keys(timeline).forEach((key) => {
       const data = timeline[key];
       const div = document.createElement("div");
-      div.className = "p-3.5 rounded-lg bg-[#181920] border border-white/10 space-y-1";
+      div.className = "p-3.5 rounded-lg bg-[#111216] border border-white/10 space-y-1";
       div.innerHTML = `
-        <div class="font-mono text-xs font-bold text-[#FF1F6D]">BLOCK @ ${formatTime(data.start)}</div>
-        <p class="text-xs text-neutral-300 leading-relaxed">${escapeHtml(data.items.join(" "))}</p>
+        <div class="font-mono text-xs font-bold text-emerald-400">ACT SCENE @ ${formatTime(data.start)}</div>
+        <p class="text-xs text-neutral-300 leading-relaxed font-light">${escapeHtml(data.items.join(" "))}</p>
       `;
       outlineList.appendChild(div);
     });
   }
 
-  // --- Tab 3: Talk-Time Radar Breakdown ---
-  function renderTalkRadar(segments) {
+  // --- Tab 3: Dialogue Radar Breakdown ---
+  function renderDialogueRadar(segments) {
     speakerStatsFeed.innerHTML = "";
     if (!segments || segments.length === 0) return;
 
@@ -543,128 +539,89 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const entries = Object.entries(stats).sort((a, b) => b[1] - a[1]);
-    const palette = ["bg-[#CCFF00]", "bg-[#00F5D4]", "bg-[#FF1F6D]", "bg-[#8B5CF6]"];
+    const palette = ["bg-blue-600", "bg-emerald-500", "bg-rose-500", "bg-purple-500"];
 
     entries.forEach(([speaker, time], idx) => {
       const pct = totalTime > 0 ? ((time / totalTime) * 100).toFixed(1) : 0;
       const barColor = palette[idx % palette.length];
 
       const row = document.createElement("div");
-      row.className = "p-3.5 rounded-lg bg-[#181920] border border-white/10 space-y-1.5";
+      row.className = "p-3.5 rounded-lg bg-[#111216] border border-white/10 space-y-1.5";
       row.innerHTML = `
         <div class="flex items-center justify-between text-xs font-mono font-bold">
           <span class="text-white uppercase">${escapeHtml(speaker)}</span>
-          <span class="text-[#CCFF00]">${formatTime(time)} // ${pct}%</span>
+          <span class="text-blue-400">${formatTime(time)} // ${pct}%</span>
         </div>
-        <div class="w-full h-3 bg-black border border-white/20 rounded p-0.5">
-          <div class="h-full ${barColor} rounded transition-all duration-500" style="width: ${pct}%"></div>
+        <div class="w-full h-2 bg-black border border-white/20 rounded-full overflow-hidden">
+          <div class="h-full ${barColor} rounded-full transition-all duration-500" style="width: ${pct}%"></div>
         </div>
       `;
       speakerStatsFeed.appendChild(row);
     });
   }
 
-  // --- Zine Tab Switcher ---
-  tabTranscriptBtn.addEventListener("click", () => switchZineTab("transcript"));
-  tabSummaryBtn.addEventListener("click", () => switchZineTab("summary"));
-  tabAnalyticsBtn.addEventListener("click", () => switchZineTab("analytics"));
+  // --- Screenplay Tab Switching ---
+  tabTranscriptBtn.addEventListener("click", () => switchStageTab("transcript"));
+  tabSummaryBtn.addEventListener("click", () => switchStageTab("summary"));
+  tabAnalyticsBtn.addEventListener("click", () => switchStageTab("analytics"));
 
-  function switchZineTab(tab) {
+  function switchStageTab(tab) {
     [tabTranscriptBtn, tabSummaryBtn, tabAnalyticsBtn].forEach((b) => {
-      b.classList.remove("bg-[#CCFF00]", "text-black", "border-black", "shadow-[2px_2px_0px_#FFFFFF]");
-      b.classList.add("bg-black", "text-neutral-300", "border-white/20");
+      b.classList.remove("bg-[#2563EB]", "text-white", "border-blue-400");
+      b.classList.add("bg-black", "text-neutral-400", "border-white/15");
     });
     tabTranscriptView.classList.add("hidden");
     tabSummaryView.classList.add("hidden");
     tabAnalyticsView.classList.add("hidden");
 
     if (tab === "transcript") {
-      tabTranscriptBtn.classList.add("bg-[#CCFF00]", "text-black", "border-black", "shadow-[2px_2px_0px_#FFFFFF]");
-      tabTranscriptBtn.classList.remove("bg-black", "text-neutral-300", "border-white/20");
+      tabTranscriptBtn.classList.add("bg-[#2563EB]", "text-white", "border-blue-400");
+      tabTranscriptBtn.classList.remove("bg-black", "text-neutral-400", "border-white/15");
       tabTranscriptView.classList.remove("hidden");
     } else if (tab === "summary") {
-      tabSummaryBtn.classList.add("bg-[#CCFF00]", "text-black", "border-black", "shadow-[2px_2px_0px_#FFFFFF]");
-      tabSummaryBtn.classList.remove("bg-black", "text-neutral-300", "border-white/20");
+      tabSummaryBtn.classList.add("bg-[#2563EB]", "text-white", "border-blue-400");
+      tabSummaryBtn.classList.remove("bg-black", "text-neutral-400", "border-white/15");
       tabSummaryView.classList.remove("hidden");
     } else if (tab === "analytics") {
-      tabAnalyticsBtn.classList.add("bg-[#CCFF00]", "text-black", "border-black", "shadow-[2px_2px_0px_#FFFFFF]");
-      tabAnalyticsBtn.classList.remove("bg-black", "text-neutral-300", "border-white/20");
+      tabAnalyticsBtn.classList.add("bg-[#2563EB]", "text-white", "border-blue-400");
+      tabAnalyticsBtn.classList.remove("bg-black", "text-neutral-400", "border-white/15");
       tabAnalyticsView.classList.remove("hidden");
     }
   }
 
-  // --- Boombox Controls ---
+  // --- Transport Controls (WaveSurfer-Linked) ---
   playPauseBtn.addEventListener("click", () => {
-    if (audioPlayer.paused) {
-      audioPlayer.play();
-      setPlaying(true);
-    } else {
-      audioPlayer.pause();
-      setPlaying(false);
-    }
+    if (wavesurfer) wavesurfer.playPause();
   });
 
-  function setPlaying(playing) {
+  function setPlayState(playing) {
     playIcon.setAttribute("data-lucide", playing ? "pause" : "play");
     if (window.lucide) lucide.createIcons();
   }
 
   skipBackBtn.addEventListener("click", () => {
-    audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 10);
+    if (wavesurfer) wavesurfer.skip(-10);
   });
 
   skipForwardBtn.addEventListener("click", () => {
-    audioPlayer.currentTime = Math.min(audioPlayer.duration || 0, audioPlayer.currentTime + 10);
+    if (wavesurfer) wavesurfer.skip(10);
   });
 
   speedCycleBtn.addEventListener("click", () => {
     currentSpeedIdx = (currentSpeedIdx + 1) % speeds.length;
     const speed = speeds[currentSpeedIdx];
-    audioPlayer.playbackRate = speed;
+    if (wavesurfer) wavesurfer.setPlaybackRate(speed);
     speedCycleBtn.textContent = `${speed}×`;
-  });
-
-  audioPlayer.addEventListener("timeupdate", () => {
-    const cur = audioPlayer.currentTime;
-    currentTimeDisplay.textContent = formatTime(cur);
-
-    if (!isDraggingScrubber && audioPlayer.duration) {
-      audioScrubber.value = (cur / audioPlayer.duration) * 100;
-    }
-
-    // Active sentence highlight
-    let found = false;
-    currentSegments.forEach((seg, idx) => {
-      const el = document.getElementById(`segment-${idx}`);
-      if (!el) return;
-
-      if (!found && cur >= seg.start_time && cur <= seg.end_time) {
-        if (!el.classList.contains("active-segment")) {
-          document.querySelectorAll(".active-segment").forEach((i) => i.classList.remove("active-segment"));
-          el.classList.add("active-segment");
-          el.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        }
-        found = true;
-      }
-    });
-  });
-
-  audioScrubber.addEventListener("input", () => isDraggingScrubber = true);
-  audioScrubber.addEventListener("change", () => {
-    if (audioPlayer.duration) {
-      audioPlayer.currentTime = (audioScrubber.value / 100) * audioPlayer.duration;
-    }
-    isDraggingScrubber = false;
   });
 
   document.addEventListener("keydown", (e) => {
     if (e.code === "Space" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
       e.preventDefault();
-      playPauseBtn.click();
+      if (wavesurfer) wavesurfer.playPause();
     }
   });
 
-  // --- Speaker Rename Modal ---
+  // --- Rename Modal ---
   function openRenameModal(tag, name) {
     targetRenameTag = tag;
     speakerRenameInput.value = name;
@@ -705,12 +662,12 @@ document.addEventListener("DOMContentLoaded", () => {
   copyTranscriptBtn.addEventListener("click", () => {
     if (!currentSegments || currentSegments.length === 0) return;
     const full = currentSegments
-      .map((s) => `[${formatTime(s.start_time)}] ${s.speaker_name || s.speaker || "Speaker"}: ${s.text}`)
+      .map((s) => `[${formatTime(s.start_time)}] ${s.speaker_name || s.speaker || "Performer"}: ${s.text}`)
       .join("\n\n");
 
     navigator.clipboard.writeText(full).then(() => {
       const original = copyTranscriptBtn.innerHTML;
-      copyTranscriptBtn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-[#CCFF00]"></i> COPIED`;
+      copyTranscriptBtn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-blue-400"></i> COPIED`;
       if (window.lucide) lucide.createIcons();
       setTimeout(() => {
         copyTranscriptBtn.innerHTML = original;
@@ -749,26 +706,26 @@ document.addEventListener("DOMContentLoaded", () => {
       historyList.innerHTML = "";
 
       if (list.length === 0) {
-        historyList.innerHTML = `<p class="text-xs font-mono text-neutral-400 italic p-3 text-center">NO SESSIONS IN VAULT</p>`;
+        historyList.innerHTML = `<p class="text-xs font-mono text-neutral-500 italic p-3 text-center">NO ARCHIVED SESSIONS</p>`;
         return;
       }
 
       list.forEach((item) => {
         const row = document.createElement("div");
-        row.className = `p-3.5 rounded-xl bg-[#181920] border-2 border-white/10 hover:border-[#CCFF00] cursor-pointer transition flex items-center justify-between group ${
-          item.id === currentRecordingId ? "border-[#CCFF00] bg-[#CCFF00]/10" : ""
+        row.className = `p-3.5 rounded-xl bg-[#111216] border border-white/10 hover:border-blue-500/60 cursor-pointer transition flex items-center justify-between group ${
+          item.id === currentRecordingId ? "border-blue-500 bg-blue-500/10" : ""
         }`;
 
         row.innerHTML = `
           <div class="truncate flex-1 pr-2">
-            <h4 class="text-xs font-mono font-bold text-white group-hover:text-[#CCFF00] truncate">${escapeHtml(item.title || item.filename)}</h4>
+            <h4 class="text-xs font-stage font-bold text-white group-hover:text-blue-400 truncate uppercase">${escapeHtml(item.title || item.filename)}</h4>
             <div class="flex items-center gap-2 text-[10px] font-mono text-neutral-400 mt-1">
               <span>${item.duration ? formatTime(item.duration) : item.status}</span>
               <span>&bull;</span>
               <span>${item.created_at ? item.created_at.slice(0, 10) : ""}</span>
             </div>
           </div>
-          <button class="delete-btn opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-[#FF1F6D] transition" title="Delete">
+          <button class="delete-btn opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-rose-400 transition" title="Delete">
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
           </button>
         `;
@@ -782,7 +739,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const delBtn = row.querySelector(".delete-btn");
         delBtn.addEventListener("click", async (e) => {
           e.stopPropagation();
-          if (confirm("Delete session from vault?")) {
+          if (confirm("Delete session from archive?")) {
             await fetch(`/api/recordings/${item.id}`, { method: "DELETE" });
             if (currentRecordingId === item.id) {
               transcriptSection.classList.add("hidden");
@@ -806,19 +763,19 @@ document.addEventListener("DOMContentLoaded", () => {
     copyShareBtn.addEventListener("click", () => {
       navigator.clipboard.writeText(window.location.origin).then(() => {
         copyShareBtn.textContent = "COPIED!";
-        setTimeout(() => (copyShareBtn.textContent = "Share URL"), 2000);
+        setTimeout(() => (copyShareBtn.textContent = "Share Link"), 2000);
       });
     });
   }
 
   // --- Helpers ---
-  function buildSpeakerStampMap(segments) {
+  function buildPerformerMap(segments) {
     const map = {};
     let idx = 0;
     segments.forEach((s) => {
       const tag = s.speaker || "Speaker 1";
       if (!map[tag]) {
-        map[tag] = SPEAKER_STAMPS[idx % SPEAKER_STAMPS.length];
+        map[tag] = PERFORMER_PALETTES[idx % PERFORMER_PALETTES.length];
         idx++;
       }
     });
