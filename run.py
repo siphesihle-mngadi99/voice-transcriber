@@ -16,6 +16,24 @@ if CLOUDFLARED_DIR.exists() and str(CLOUDFLARED_DIR) not in os.environ.get("PATH
     os.environ["PATH"] += f";{CLOUDFLARED_DIR}"
 
 
+def free_port(port: int):
+    """Frees the port if an orphaned process is holding it from a previous run."""
+    try:
+        current_pid = os.getpid()
+        cmd = f'powershell -Command "Get-NetTCPConnection -LocalPort {port} -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess"'
+        out = subprocess.check_output(cmd, shell=True, text=True).strip()
+        if out:
+            for p in out.splitlines():
+                p = p.strip()
+                if p.isdigit():
+                    pid = int(p)
+                    if pid != current_pid and pid != 0:
+                        subprocess.run(f"taskkill /F /PID {pid}", shell=True, capture_output=True)
+            time.sleep(0.5)
+    except Exception:
+        pass
+
+
 def get_local_ip() -> str:
     """Finds the local network IP of this machine for mobile / Wi-Fi sharing."""
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -81,6 +99,9 @@ def print_banner(public_url=None):
 
 
 def main():
+    # Automatically clear stale connections on port 8000
+    free_port(PORT)
+
     share_mode = "--share" in sys.argv or "-s" in sys.argv
     tunnel_proc = None
 
