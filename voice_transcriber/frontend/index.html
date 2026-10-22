@@ -3,7 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VoiceScribe | Local-First Long-Form Audio Transcriber</title>
+  <title>VoiceScribe Studio — Local Long-Form Audio Intelligence</title>
+  
+  <!-- Google Fonts: Space Grotesk + Plus Jakarta Sans + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -11,12 +17,19 @@
       darkMode: 'class',
       theme: {
         extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
           colors: {
-            brand: {
-              50: '#eef2ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
+            obsidian: '#08090D',
+            surface: '#10121A',
+            elevated: '#161824',
+            cobalt: {
+              400: '#60A5FA',
+              500: '#3874FF',
+              600: '#2563EB',
             }
           }
         }
@@ -27,223 +40,343 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+<body class="bg-obsidian text-slate-200 min-h-screen flex flex-col antialiased selection:bg-cobalt-500 selection:text-white pb-32">
 
-  <!-- Top Navigation Bar -->
-  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-4 lg:px-8 py-3 flex items-center justify-between">
-    <div class="flex items-center space-x-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white font-black text-xl">
-        <i data-lucide="waveform"></i>
+  <!-- Top Editorial Header Navigation -->
+  <header class="border-b border-white/[0.07] bg-obsidian/90 backdrop-blur-xl sticky top-0 z-40 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+    <div class="flex items-center space-x-3.5">
+      <div class="w-9 h-9 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-white font-display font-bold text-sm tracking-wider shadow-inner">
+        VS
       </div>
       <div>
-        <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-          VoiceScribe
-          <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Local-First</span>
-        </h1>
-        <p class="text-xs text-slate-400">Long-Form Audio & Speaker Diarization</p>
+        <div class="flex items-center gap-2">
+          <span class="font-display font-bold text-sm tracking-wider text-white">VOICESCRIBE</span>
+          <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold tracking-wider">Studio</span>
+        </div>
+        <p class="text-[11px] text-slate-500 font-medium">Local-First • Zero Cloud Caps</p>
       </div>
     </div>
 
     <div class="flex items-center space-x-3">
-      <!-- Mobile / Network share pill -->
-      <div id="sharePill" class="hidden sm:flex items-center gap-2 text-xs bg-slate-800/80 border border-slate-700/60 rounded-full px-3 py-1.5 text-slate-300">
-        <i data-lucide="wifi" class="w-3.5 h-3.5 text-emerald-400"></i>
-        <span>Share with friends on Wi-Fi</span>
-        <button id="copyShareBtn" class="hover:text-white transition ml-1 text-indigo-400 font-medium">Copy Link</button>
+      <!-- Network / Mobile Sharing Pill -->
+      <div id="sharePill" class="hidden md:flex items-center gap-2 text-xs bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.15] rounded-full px-3.5 py-1.5 text-slate-300 transition">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="text-[11px] font-mono text-slate-400">Live Server</span>
+        <button id="copyShareBtn" class="text-[11px] font-mono font-medium text-blue-400 hover:text-blue-300 pl-1 border-l border-white/[0.1] transition">Copy Link</button>
       </div>
-      <button id="historyToggleBtn" class="lg:hidden p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white">
-        <i data-lucide="history" class="w-5 h-5"></i>
+      
+      <!-- Past Sessions Drawer Toggle -->
+      <button id="historyToggleBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-xs font-medium text-slate-300 hover:text-white transition">
+        <i data-lucide="archive" class="w-3.5 h-3.5"></i>
+        <span>Library</span>
+        <span id="recordingCountBadge" class="text-[10px] bg-white/[0.1] px-1.5 py-0.2 rounded-full font-mono ml-0.5">0</span>
       </button>
     </div>
   </header>
 
-  <!-- Main Layout -->
-  <div class="flex-1 flex overflow-hidden">
+  <!-- Main Container -->
+  <div class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
     
-    <!-- Sidebar: Past Recordings History -->
-    <aside id="historySidebar" class="hidden lg:flex w-80 flex-col border-r border-slate-800/80 bg-slate-900/40 p-4 shrink-0 overflow-y-auto">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-          <i data-lucide="clock" class="w-4 h-4"></i>
-          Recent Recordings
-        </h2>
-        <span id="recordingCount" class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">0</span>
+    <!-- Hero Statement -->
+    <div class="space-y-2 pt-2">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-xs font-mono text-slate-400">
+        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+        <span>Built for 3h+ meetings, lectures & interviews</span>
       </div>
-      <div id="historyList" class="space-y-2 flex-1">
-        <!-- Injected via JavaScript -->
-        <p class="text-xs text-slate-500 italic p-2">No recordings yet.</p>
-      </div>
-    </aside>
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-display font-bold tracking-tight text-white leading-tight">
+        Long-form speech, <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400">distilled with precision.</span>
+      </h2>
+      <p class="text-sm sm:text-base text-slate-400 max-w-2xl font-light">
+        100% self-hosted transcription with multi-speaker acoustic clustering, zero file size limits, and interactive karaoke-synced audio playback.
+      </p>
+    </div>
 
-    <!-- Main Workspace -->
-    <main class="flex-1 flex flex-col overflow-y-auto p-4 lg:p-6 space-y-6 max-w-6xl mx-auto w-full">
-      
-      <!-- Ingestion & Upload Section -->
-      <section class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden">
-        <div class="absolute -right-16 -top-16 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          <!-- Dropzone Area (Spans 2 cols) -->
-          <div class="md:col-span-2">
-            <div id="dropzone" class="border-2 border-dashed border-slate-700/80 hover:border-indigo-500/80 rounded-xl p-6 text-center cursor-pointer transition-all bg-slate-950/40 hover:bg-slate-900/60 flex flex-col items-center justify-center min-h-[170px] group">
-              <input type="file" id="fileInput" class="hidden" accept=".mp3,.wav,.m4a,.aac,.ogg,.flac,.wma,.webm,.opus,.mp4">
-              <div class="w-12 h-12 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
-                <i data-lucide="upload-cloud" class="w-6 h-6"></i>
-              </div>
-              <p class="text-sm font-semibold text-slate-200">
-                Drag & drop voice memos or meetings here
-              </p>
-              <p class="text-xs text-slate-400 mt-1">
-                Supports <span class="text-indigo-400">.m4a, .mp3, .wav, .aac</span> & more • Handles 3h+ files with zero cloud limits
-              </p>
-              <div id="selectedFileBanner" class="hidden mt-3 text-xs bg-indigo-500/20 text-indigo-300 px-3 py-1.5 rounded-lg border border-indigo-500/30 flex items-center gap-2">
-                <i data-lucide="file-audio" class="w-4 h-4"></i>
-                <span id="selectedFileName">filename.mp3</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Quick Actions & Config -->
-          <div class="flex flex-col justify-between space-y-4">
-            <div class="space-y-3">
-              <!-- Mobile Voice Recorder Button -->
-              <button id="micRecordBtn" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition text-sm font-medium">
-                <i data-lucide="mic" class="w-4 h-4 text-rose-400" id="micIcon"></i>
-                <span id="micLabel">Record Voice Memo</span>
-              </button>
-
-              <div class="flex items-center justify-between text-xs text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-slate-800">
-                <label for="modelSelect" class="font-medium text-slate-400">Whisper Model:</label>
-                <select id="modelSelect" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-slate-200 text-xs focus:ring-1 focus:ring-indigo-500">
-                  <option value="base" selected>base (Fast & Balanced)</option>
-                  <option value="tiny">tiny (Ultra Fast)</option>
-                  <option value="small">small (High Precision)</option>
-                </select>
-              </div>
-
-              <div class="flex items-center justify-between text-xs text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-slate-800">
-                <span class="font-medium text-slate-400">Identify Speakers:</span>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" id="diarizationToggle" checked class="sr-only peer">
-                  <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
-                </label>
-              </div>
-            </div>
-
-            <!-- Start Transcribing Button -->
-            <button id="startTranscribeBtn" disabled class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
-              <i data-lucide="play" class="w-4 h-4"></i>
-              <span>Start Transcription</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Live Progress Banner -->
-        <div id="progressContainer" class="hidden mt-6 pt-5 border-t border-slate-800">
-          <div class="flex items-center justify-between text-xs mb-2">
-            <span id="progressStatusText" class="font-medium text-indigo-400 flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
-              Transcribing audio stream...
-            </span>
-            <span id="progressPercent" class="font-mono text-slate-300">0%</span>
-          </div>
-          <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
-            <div id="progressBar" class="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-all duration-300 w-0"></div>
-          </div>
-          <p id="liveTranscriptPreview" class="text-xs text-slate-400 mt-2 truncate italic font-mono"></p>
-        </div>
-      </section>
-
-      <!-- Active Session Dashboard (Player & Synchronized Transcript) -->
-      <section id="transcriptSection" class="hidden flex-1 flex flex-col bg-slate-900/60 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+    <!-- Studio Ingestion Card (Dropzone + Controls) -->
+    <section class="editorial-card rounded-2xl p-6 sm:p-8 relative overflow-hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
-        <!-- Header & Toolbar -->
-        <div class="p-4 border-b border-slate-800 bg-slate-900/90 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 id="currentTitle" class="text-base font-bold text-white flex items-center gap-2">
-              Meeting Recording
-            </h2>
-            <div class="flex items-center gap-3 text-xs text-slate-400 mt-0.5">
-              <span id="currentDuration" class="flex items-center gap-1">
-                <i data-lucide="clock" class="w-3.5 h-3.5"></i> 00:00:00
-              </span>
-              <span>•</span>
-              <span id="segmentCount">0 segments</span>
+        <!-- Left: Dropzone Area (Spans 8 cols) -->
+        <div class="lg:col-span-8 flex flex-col justify-center">
+          <div id="dropzone" class="border border-dashed border-white/[0.15] hover:border-blue-500/80 rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 bg-white/[0.01] hover:bg-white/[0.03] flex flex-col items-center justify-center min-h-[220px] group relative overflow-hidden">
+            <input type="file" id="fileInput" class="hidden" accept=".mp3,.wav,.m4a,.aac,.ogg,.flac,.wma,.webm,.opus,.mp4">
+            
+            <!-- Animated Soundwave Icon Indicator -->
+            <div class="flex items-center justify-center gap-1 h-10 mb-3 text-blue-400">
+              <span class="soundwave-bar w-1 h-5 bg-blue-500 rounded-full"></span>
+              <span class="soundwave-bar w-1 h-8 bg-blue-500 rounded-full"></span>
+              <span class="soundwave-bar w-1 h-10 bg-blue-500 rounded-full"></span>
+              <span class="soundwave-bar w-1 h-7 bg-blue-500 rounded-full"></span>
+              <span class="soundwave-bar w-1 h-4 bg-blue-500 rounded-full"></span>
+            </div>
+
+            <p class="text-base font-display font-semibold text-white group-hover:text-blue-300 transition">
+              Drop voice memos or meeting recordings here
+            </p>
+            <p class="text-xs text-slate-400 mt-1 max-w-md">
+              Supports <span class="text-slate-300 font-mono">.m4a, .mp3, .wav, .aac, .flac</span> • Processed locally on your AMD Ryzen CPU
+            </p>
+
+            <div id="selectedFileBanner" class="hidden mt-4 text-xs font-mono bg-blue-500/10 text-blue-300 px-4 py-2 rounded-xl border border-blue-500/30 flex items-center gap-2">
+              <i data-lucide="file-audio" class="w-4 h-4 text-blue-400"></i>
+              <span id="selectedFileName">filename.mp3</span>
             </div>
           </div>
+        </div>
 
-          <!-- Actions: Search, Copy & Export Dropdown -->
-          <div class="flex items-center gap-2">
-            <div class="relative">
-              <i data-lucide="search" class="w-4 h-4 absolute left-2.5 top-2.5 text-slate-400"></i>
-              <input type="text" id="searchInput" placeholder="Search transcript..." class="bg-slate-950/60 border border-slate-700/80 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 w-40 sm:w-56">
-            </div>
+        <!-- Right: Studio Parameters & Mic Recorder (Spans 4 cols) -->
+        <div class="lg:col-span-4 flex flex-col justify-between space-y-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5">
+          <div class="space-y-4">
+            <h3 class="text-xs uppercase font-mono tracking-wider text-slate-400 font-semibold flex items-center justify-between">
+              <span>Studio Engine</span>
+              <i data-lucide="sliders" class="w-3.5 h-3.5 text-slate-500"></i>
+            </h3>
 
-            <button id="copyTranscriptBtn" title="Copy full text" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition text-xs flex items-center gap-1.5">
-              <i data-lucide="copy" class="w-4 h-4"></i>
-              <span class="hidden sm:inline">Copy</span>
+            <!-- Mobile & Studio Mic Button -->
+            <button id="micRecordBtn" class="w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition text-xs font-semibold">
+              <i data-lucide="mic" class="w-4 h-4 text-rose-400" id="micIcon"></i>
+              <span id="micLabel">Record Voice Memo</span>
             </button>
 
-            <!-- Export Dropdown -->
-            <div class="relative inline-block text-left">
-              <button id="exportMenuBtn" class="py-1.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 transition">
-                <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                <span>Export</span>
-                <i data-lucide="chevron-down" class="w-3 h-3"></i>
-              </button>
-              <div id="exportDropdown" class="hidden absolute right-0 mt-2 w-44 rounded-xl shadow-2xl bg-slate-900 border border-slate-700/80 py-1.5 z-50 text-xs">
-                <button class="export-opt w-full text-left px-3 py-2 hover:bg-slate-800 flex items-center gap-2" data-format="md">
-                  <i data-lucide="file-text" class="w-4 h-4 text-indigo-400"></i> Markdown Notes (.md)
-                </button>
-                <button class="export-opt w-full text-left px-3 py-2 hover:bg-slate-800 flex items-center gap-2" data-format="srt">
-                  <i data-lucide="subtitles" class="w-4 h-4 text-emerald-400"></i> Subtitles (.srt)
-                </button>
-                <button class="export-opt w-full text-left px-3 py-2 hover:bg-slate-800 flex items-center gap-2" data-format="txt">
-                  <i data-lucide="align-left" class="w-4 h-4 text-amber-400"></i> Plain Text (.txt)
-                </button>
-                <button class="export-opt w-full text-left px-3 py-2 hover:bg-slate-800 flex items-center gap-2" data-format="json">
-                  <i data-lucide="code" class="w-4 h-4 text-violet-400"></i> Raw JSON (.json)
-                </button>
+            <!-- Model Selection Pill -->
+            <div class="space-y-1.5">
+              <label for="modelSelect" class="text-[11px] font-mono text-slate-400 block">Whisper Model:</label>
+              <select id="modelSelect" class="w-full bg-obsidian border border-white/[0.1] rounded-xl px-3 py-2 text-slate-200 text-xs font-sans focus:outline-none focus:border-blue-500">
+                <option value="base" selected>base (Fast & Balanced)</option>
+                <option value="tiny">tiny (Ultra Fast)</option>
+                <option value="small">small (High Precision)</option>
+              </select>
+            </div>
+
+            <!-- Speaker Diarization Switch -->
+            <div class="flex items-center justify-between pt-1">
+              <div>
+                <span class="text-xs font-medium text-slate-200 block">Speaker Diarization</span>
+                <span class="text-[10px] text-slate-500 block">Identify distinct voices</span>
               </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="diarizationToggle" checked class="sr-only peer">
+                <div class="w-10 h-5 bg-white/[0.1] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
             </div>
+          </div>
+
+          <!-- Initialize Transcription Button -->
+          <button id="startTranscribeBtn" disabled class="w-full py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:cursor-not-allowed text-white font-display font-semibold text-xs tracking-wider uppercase transition shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 mt-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span>Initialize Pipeline</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Live Pipeline Processing Banner -->
+      <div id="progressContainer" class="hidden mt-6 pt-6 border-t border-white/[0.08]">
+        <div class="flex items-center justify-between text-xs mb-2.5">
+          <span id="progressStatusText" class="font-mono text-blue-400 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+            Processing audio stream...
+          </span>
+          <span id="progressPercent" class="font-mono text-slate-300 font-semibold">0%</span>
+        </div>
+        <div class="w-full h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
+          <div id="progressBar" class="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 rounded-full transition-all duration-300 w-0"></div>
+        </div>
+        <p id="liveTranscriptPreview" class="text-xs font-mono text-slate-500 mt-2.5 truncate italic"></p>
+      </div>
+    </section>
+
+    <!-- Active Workspace (Interactive Tabs + Synchronized Dialogue) -->
+    <section id="transcriptSection" class="hidden editorial-card rounded-2xl overflow-hidden shadow-2xl">
+      
+      <!-- Top Workspace Toolbar -->
+      <div class="p-5 border-b border-white/[0.08] bg-surface flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 id="currentTitle" class="text-lg sm:text-xl font-display font-bold text-white tracking-tight flex items-center gap-2">
+            Recording Session
+          </h2>
+          <div class="flex items-center gap-3 text-xs font-mono text-slate-400 mt-1">
+            <span id="currentDuration" class="flex items-center gap-1.5">
+              <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i> 00:00:00
+            </span>
+            <span>•</span>
+            <span id="segmentCount">0 segments</span>
           </div>
         </div>
 
-        <!-- Synchronized Audio Player Controls -->
-        <div class="p-3 bg-slate-950/60 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
-          <audio id="audioPlayer" class="w-full md:w-auto flex-1 h-9 rounded-lg" controls preload="metadata"></audio>
-          
-          <div class="flex items-center gap-2 text-xs">
-            <!-- Playback Speed Switcher -->
-            <span class="text-slate-400 font-medium">Speed:</span>
-            <div class="flex rounded-lg bg-slate-900 p-0.5 border border-slate-800">
-              <button class="speed-btn px-2 py-0.5 rounded text-xs text-indigo-400 font-bold" data-speed="1.0">1x</button>
-              <button class="speed-btn px-2 py-0.5 rounded text-xs text-slate-400 hover:text-white" data-speed="1.25">1.25x</button>
-              <button class="speed-btn px-2 py-0.5 rounded text-xs text-slate-400 hover:text-white" data-speed="1.5">1.5x</button>
-              <button class="speed-btn px-2 py-0.5 rounded text-xs text-slate-400 hover:text-white" data-speed="2.0">2x</button>
+        <!-- Controls: Search, Copy & Export Dropdown -->
+        <div class="flex items-center gap-2.5">
+          <div class="relative">
+            <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-500"></i>
+            <input type="text" id="searchInput" placeholder="Search dialogue..." class="bg-obsidian border border-white/[0.1] rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 w-36 sm:w-56 font-sans">
+          </div>
+
+          <button id="copyTranscriptBtn" title="Copy full transcript" class="px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-slate-300 hover:text-white transition text-xs font-medium flex items-center gap-1.5">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Copy</span>
+          </button>
+
+          <!-- Export Dropdown -->
+          <div class="relative inline-block text-left">
+            <button id="exportMenuBtn" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1.5 transition">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Export</span>
+              <i data-lucide="chevron-down" class="w-3 h-3 opacity-70"></i>
+            </button>
+            <div id="exportDropdown" class="hidden absolute right-0 mt-2 w-48 rounded-xl shadow-2xl bg-surface border border-white/[0.1] py-1.5 z-50 text-xs">
+              <button class="export-opt w-full text-left px-3.5 py-2 hover:bg-white/[0.05] flex items-center gap-2.5 text-slate-300 hover:text-white" data-format="md">
+                <i data-lucide="file-text" class="w-4 h-4 text-blue-400"></i> Markdown Notes (.md)
+              </button>
+              <button class="export-opt w-full text-left px-3.5 py-2 hover:bg-white/[0.05] flex items-center gap-2.5 text-slate-300 hover:text-white" data-format="srt">
+                <i data-lucide="subtitles" class="w-4 h-4 text-emerald-400"></i> Subtitles (.srt)
+              </button>
+              <button class="export-opt w-full text-left px-3.5 py-2 hover:bg-white/[0.05] flex items-center gap-2.5 text-slate-300 hover:text-white" data-format="vtt">
+                <i data-lucide="video" class="w-4 h-4 text-indigo-400"></i> WebVTT (.vtt)
+              </button>
+              <button class="export-opt w-full text-left px-3.5 py-2 hover:bg-white/[0.05] flex items-center gap-2.5 text-slate-300 hover:text-white" data-format="txt">
+                <i data-lucide="align-left" class="w-4 h-4 text-amber-400"></i> Plain Text (.txt)
+              </button>
+              <button class="export-opt w-full text-left px-3.5 py-2 hover:bg-white/[0.05] flex items-center gap-2.5 text-slate-300 hover:text-white" data-format="json">
+                <i data-lucide="code" class="w-4 h-4 text-rose-400"></i> Structured JSON (.json)
+              </button>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Interactive Transcript Feed -->
-        <div id="transcriptFeed" class="flex-1 p-4 lg:p-6 space-y-4 overflow-y-auto max-h-[550px]">
+      <!-- Superrb-Style Smart Workspace Tabs -->
+      <div class="px-5 border-b border-white/[0.06] bg-obsidian/40 flex items-center gap-6 text-xs font-mono">
+        <button id="tabTranscriptBtn" class="py-3 border-b-2 border-blue-500 text-white font-medium flex items-center gap-2">
+          <i data-lucide="message-square" class="w-3.5 h-3.5 text-blue-400"></i>
+          <span>Transcript</span>
+        </button>
+        <button id="tabSummaryBtn" class="py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+          <span>Executive Notes</span>
+        </button>
+        <button id="tabAnalyticsBtn" class="py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2">
+          <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i>
+          <span>Speaker Stats</span>
+        </button>
+      </div>
+
+      <!-- Tab View 1: Dialogue Transcript Feed -->
+      <div id="tabTranscriptView" class="p-6 space-y-4 max-h-[550px] overflow-y-auto">
+        <div id="transcriptFeed" class="space-y-4">
           <!-- Rendered dynamically -->
         </div>
-      </section>
+      </div>
 
-    </main>
+      <!-- Tab View 2: Executive Summary & Action Items -->
+      <div id="tabSummaryView" class="hidden p-6 space-y-6 max-h-[550px] overflow-y-auto">
+        <div class="space-y-3">
+          <h3 class="text-xs uppercase font-mono tracking-wider text-blue-400 font-semibold flex items-center gap-2">
+            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+            Key Action Items & Commitments
+          </h3>
+          <ul id="actionItemsList" class="space-y-2 text-sm text-slate-300 font-light">
+            <!-- Synthesized dynamically -->
+          </ul>
+        </div>
+        <div class="space-y-3 pt-4 border-t border-white/[0.06]">
+          <h3 class="text-xs uppercase font-mono tracking-wider text-emerald-400 font-semibold flex items-center gap-2">
+            <i data-lucide="list-tree" class="w-4 h-4"></i>
+            Discussion Outline
+          </h3>
+          <div id="outlineList" class="space-y-3 text-sm text-slate-300">
+            <!-- Synthesized dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab View 3: Speaker Analytics -->
+      <div id="tabAnalyticsView" class="hidden p-6 space-y-6 max-h-[550px] overflow-y-auto">
+        <h3 class="text-xs uppercase font-mono tracking-wider text-slate-400 font-semibold">
+          Speaking Distribution Breakdown
+        </h3>
+        <div id="speakerStatsFeed" class="space-y-4">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- Studio Audio Console (Floating Bottom Dock) -->
+  <div id="audioDock" class="fixed bottom-4 left-4 right-4 max-w-4xl mx-auto bg-surface/95 backdrop-blur-2xl border border-white/[0.12] rounded-2xl p-3.5 shadow-2xl z-50 flex flex-col gap-2.5 transition-all">
+    <audio id="audioPlayer" class="hidden" preload="metadata"></audio>
+
+    <!-- Scrubber Row -->
+    <div class="flex items-center gap-3 w-full">
+      <span id="currentTimeDisplay" class="font-mono text-xs text-slate-400 min-w-[50px] text-right">00:00</span>
+      <input type="range" id="audioScrubber" class="audio-scrubber flex-1" min="0" max="100" value="0" step="0.1">
+      <span id="totalTimeDisplay" class="font-mono text-xs text-slate-400 min-w-[50px]">00:00</span>
+    </div>
+
+    <!-- Controls Row -->
+    <div class="flex items-center justify-between">
+      
+      <!-- Left: Skip and Play/Pause -->
+      <div class="flex items-center gap-2">
+        <button id="skipBackBtn" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.05] transition" title="Rewind 10s">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+        </button>
+
+        <button id="playPauseBtn" class="w-10 h-10 rounded-xl bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition shadow-lg shadow-blue-600/30">
+          <i data-lucide="play" class="w-5 h-5 ml-0.5" id="playIcon"></i>
+        </button>
+
+        <button id="skipForwardBtn" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.05] transition" title="Forward 10s">
+          <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Center: Title preview on desktop -->
+      <div class="hidden sm:block text-center truncate max-w-xs px-2">
+        <span id="dockTitle" class="text-xs font-display font-medium text-slate-300 truncate">Audio Player</span>
+      </div>
+
+      <!-- Right: Playback Speed & Volume -->
+      <div class="flex items-center gap-3">
+        <div class="flex rounded-lg bg-obsidian p-0.5 border border-white/[0.08] text-xs font-mono">
+          <button class="speed-btn px-2 py-0.5 rounded text-blue-400 font-bold" data-speed="1.0">1x</button>
+          <button class="speed-btn px-2 py-0.5 rounded text-slate-400 hover:text-white" data-speed="1.25">1.25x</button>
+          <button class="speed-btn px-2 py-0.5 rounded text-slate-400 hover:text-white" data-speed="1.5">1.5x</button>
+          <button class="speed-btn px-2 py-0.5 rounded text-slate-400 hover:text-white" data-speed="2.0">2x</button>
+        </div>
+
+        <button id="muteBtn" class="p-2 rounded-xl text-slate-400 hover:text-white transition">
+          <i data-lucide="volume-2" class="w-4 h-4" id="volumeIcon"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide-Over Sessions Drawer (Past Library) -->
+  <div id="historyDrawer" class="fixed inset-y-0 right-0 w-80 bg-surface/95 backdrop-blur-2xl border-l border-white/[0.1] shadow-2xl z-50 transform translate-x-full transition-transform duration-300 p-6 flex flex-col">
+    <div class="flex items-center justify-between pb-4 border-b border-white/[0.08] mb-4">
+      <h3 class="font-display font-bold text-sm text-white flex items-center gap-2">
+        <i data-lucide="archive" class="w-4 h-4 text-blue-400"></i>
+        Session Library
+      </h3>
+      <button id="closeDrawerBtn" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.05]">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <div id="historyList" class="flex-1 overflow-y-auto space-y-2.5">
+      <!-- Injected via JavaScript -->
+    </div>
   </div>
 
   <!-- Rename Speaker Modal -->
-  <div id="renameSpeakerModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl">
-      <h3 class="text-sm font-bold text-white mb-1">Rename Speaker</h3>
-      <p class="text-xs text-slate-400 mb-4">Update the display name across the entire meeting transcript.</p>
-      <input type="text" id="speakerRenameInput" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 mb-4" placeholder="e.g. Alex, Dr. Smith, Sarah">
-      <div class="flex justify-end gap-2">
-        <button id="cancelRenameBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white">Cancel</button>
-        <button id="saveRenameBtn" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white">Save Name</button>
+  <div id="renameSpeakerModal" class="hidden fixed inset-0 bg-obsidian/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-surface border border-white/[0.12] rounded-2xl max-w-sm w-full p-6 shadow-2xl">
+      <h3 class="text-sm font-display font-bold text-white mb-1">Rename Speaker</h3>
+      <p class="text-xs text-slate-400 mb-4">Update this speaker's identity across the entire recording dialogue.</p>
+      <input type="text" id="speakerRenameInput" class="w-full bg-obsidian border border-white/[0.12] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 mb-5 font-sans" placeholder="e.g. Alex, Dr. Smith, Sarah">
+      <div class="flex justify-end gap-2.5">
+        <button id="cancelRenameBtn" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition">Cancel</button>
+        <button id="saveRenameBtn" class="px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition">Save Changes</button>
       </div>
     </div>
   </div>
