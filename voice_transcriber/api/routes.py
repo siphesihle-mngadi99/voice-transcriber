@@ -99,6 +99,22 @@ async def serve_index():
     return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
 
 
+@app.get("/manifest.json")
+async def get_manifest():
+    manifest_file = STATIC_DIR / "manifest.json"
+    if manifest_file.exists():
+        return FileResponse(manifest_file, media_type="application/manifest+json")
+    raise HTTPException(status_code=404)
+
+
+@app.get("/favicon.ico")
+async def get_favicon():
+    favicon_file = STATIC_DIR / "assets" / "favicon.ico"
+    if favicon_file.exists():
+        return FileResponse(favicon_file, media_type="image/x-icon")
+    raise HTTPException(status_code=404)
+
+
 @app.post("/api/upload")
 async def upload_audio(
     background_tasks: BackgroundTasks,

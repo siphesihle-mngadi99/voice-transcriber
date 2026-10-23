@@ -38,13 +38,22 @@ document.addEventListener("DOMContentLoaded", () => {
   let isRecording = false;
   let recordingTimer = null;
   let recordingSeconds = 0;
+  let recordStartTime = 0;
   let micStream = null;
   const speeds = [1.0, 1.25, 1.5, 2.0, 0.75];
   let currentSpeedIdx = 0;
 
+  // Live Audio Reactive Visualizer State
+  let audioCtx = null;
+  let analyser = null;
+  let visualizerSource = null;
+  let visualizerAnimFrame = null;
+  let visualizerIdlePhase = 0;
+
   // DOM Elements - Navigation & Sharing
   const historyToggleBtn = document.getElementById("historyToggleBtn");
   const historyDrawer = document.getElementById("historyDrawer");
+  const historyDrawerBackdrop = document.getElementById("historyDrawerBackdrop");
   const closeDrawerBtn = document.getElementById("closeDrawerBtn");
   const historyList = document.getElementById("historyList");
   const recordingCountBadge = document.getElementById("recordingCountBadge");
@@ -62,6 +71,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const micLed = document.getElementById("micLed");
   const micLabel = document.getElementById("micLabel");
   const micSubtext = document.getElementById("micSubtext");
+  const micPrecisionTimer = document.getElementById("micPrecisionTimer");
+  const visualizerCanvas = document.getElementById("liveAudioVisualizer");
+  const diarizeOffBtn = document.getElementById("diarizeOffBtn");
+  const diarizeOnBtn = document.getElementById("diarizeOnBtn");
   const diarizationToggle = document.getElementById("diarizationToggle");
   const startTranscribeBtn = document.getElementById("startTranscribeBtn");
 
@@ -74,6 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Workspace Elements
   const transcriptSection = document.getElementById("transcriptSection");
+  const backToUploadBtn = document.getElementById("backToUploadBtn");
   const currentTitle = document.getElementById("currentTitle");
   const currentDuration = document.getElementById("currentDuration");
   const segmentCount = document.getElementById("segmentCount");
@@ -127,6 +141,113 @@ document.addEventListener("DOMContentLoaded", () => {
     { badge: "bg-[#1b4cf4] text-white border-2 border-[#191717] shadow-[2px_2px_0px_#191717]", dot: "bg-white" },
     { badge: "bg-[#191717] text-white border-2 border-[#191717] shadow-[2px_2px_0px_#ff2f11]", dot: "bg-[#e4fc51]" },
   ];
+
+  // --- Studio Oscilloscope & Live Audio VU Visualizer Engine ---
+  function initVisualizerCanvas() {
+    if (!visualizerCanvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const rect = visualizerCanvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : 280;
+    const h = rect.height > 0 ? rect.height : 32;
+    visualizerCanvas.width = Math.floor(w * dpr);
+    visualizerCanvas.height = Math.floor(h * dpr);
+  }
+
+  function drawIdleOscilloscope() {
+    if (isRecording) return;
+    if (!visualizerCanvas) return;
+    const ctx = visualizerCanvas.getContext("2d");
+    if (!ctx) return;
+
+    const w = visualizerCanvas.width;
+    const h = visualizerCanvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    // Subtle dark ink oscilloscope baseline
+    ctx.beginPath();
+    ctx.lineWidth = Math.max(1.5, window.devicePixelRatio || 1);
+    ctx.strokeStyle = "rgba(25, 23, 23, 0.45)";
+    const midY = h / 2;
+
+    for (let x = 0; x < w; x += 2) {
+      const env = Math.sin((x / w) * Math.PI);
+      const y = midY + Math.sin(x * 0.035 + visualizerIdlePhase) * (h * 0.22) * env;
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    visualizerIdlePhase += 0.05;
+    visualizerAnimFrame = requestAnimationFrame(drawIdleOscilloscope);
+  }
+
+  function startLiveVisualizer(stream) {
+    if (visualizerAnimFrame) cancelAnimationFrame(visualizerAnimFrame);
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      audioCtx = new AudioCtx();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64; // 32 frequency bins
+      analyser.smoothingTimeConstant = 0.72;
+      visualizerSource = audioCtx.createMediaStreamSource(stream);
+      visualizerSource.connect(analyser);
+
+      const bufferLen = analyser.frequencyBinCount;
+      const freqData = new Uint8Array(bufferLen);
+      const ctx = visualizerCanvas.getContext("2d");
+
+      function renderLiveFrame() {
+        if (!isRecording) return;
+        visualizerAnimFrame = requestAnimationFrame(renderLiveFrame);
+
+        analyser.getByteFrequencyData(freqData);
+        const w = visualizerCanvas.width;
+        const h = visualizerCanvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        const barCount = 26;
+        const gap = 3 * (window.devicePixelRatio || 1);
+        const barWidth = Math.max(2, (w - (barCount - 1) * gap) / barCount);
+
+        for (let i = 0; i < barCount; i++) {
+          const binIdx = Math.floor((i / barCount) * (bufferLen * 0.85));
+          const val = freqData[binIdx] || 0;
+          const pct = val / 255;
+          const barHeight = Math.max(4, pct * (h - 4));
+          const x = i * (barWidth + gap);
+          const y = h - barHeight;
+
+          // Apple / AYA Flame Red with Acid Lime high-energy peaks
+          ctx.fillStyle = pct > 0.65 ? "#e4fc51" : "#ff2f11";
+          ctx.fillRect(x, y, barWidth, barHeight);
+        }
+      }
+
+      renderLiveFrame();
+    } catch (err) {
+      console.warn("Live visualizer error", err);
+    }
+  }
+
+  function stopLiveVisualizer() {
+    if (visualizerAnimFrame) cancelAnimationFrame(visualizerAnimFrame);
+    if (audioCtx) {
+      try { audioCtx.close(); } catch(e) {}
+      audioCtx = null;
+    }
+    analyser = null;
+    visualizerSource = null;
+    drawIdleOscilloscope();
+  }
+
+  // Initialize visualizer on load & on window resize
+  initVisualizerCanvas();
+  drawIdleOscilloscope();
+  window.addEventListener("resize", () => {
+    initVisualizerCanvas();
+    if (!isRecording) drawIdleOscilloscope();
+  });
 
   // --- Initial Load ---
   loadRecordingsList();
@@ -205,6 +326,25 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // --- Speaker Diarization Segmented Buttons ---
+  if (diarizeOffBtn && diarizeOnBtn && diarizationToggle) {
+    diarizeOffBtn.addEventListener("click", () => {
+      diarizationToggle.checked = false;
+      diarizeOffBtn.classList.add("bg-[#191717]", "text-white", "shadow-[1px_1px_0px_#191717]");
+      diarizeOffBtn.classList.remove("bg-transparent", "text-[#191717]");
+      diarizeOnBtn.classList.remove("bg-[#ff2f11]", "text-white", "shadow-[1px_1px_0px_#191717]");
+      diarizeOnBtn.classList.add("bg-transparent", "text-[#191717]");
+    });
+
+    diarizeOnBtn.addEventListener("click", () => {
+      diarizationToggle.checked = true;
+      diarizeOnBtn.classList.add("bg-[#ff2f11]", "text-white", "shadow-[1px_1px_0px_#191717]");
+      diarizeOnBtn.classList.remove("bg-transparent", "text-[#191717]");
+      diarizeOffBtn.classList.remove("bg-[#191717]", "text-white", "shadow-[1px_1px_0px_#191717]");
+      diarizeOffBtn.classList.add("bg-transparent", "text-[#191717]");
+    });
+  }
+
   // --- Drag & Drop Audio File ---
   dropzone.addEventListener("click", () => fileInput.click());
 
@@ -246,14 +386,14 @@ document.addEventListener("DOMContentLoaded", () => {
     startTranscribeBtn.disabled = false;
   }
 
-  // --- Voice Memo Mic Recording ---
+  // --- Voice Memo Mic Recording with Real-Time VU Visualizer ---
   micRecordCard.addEventListener("click", async () => {
     if (!isRecording) {
       try {
         micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(micStream);
         audioChunks = [];
-        recordingSeconds = 0;
+        recordStartTime = Date.now();
 
         mediaRecorder.ondataavailable = (e) => {
           if (e.data.size > 0) audioChunks.push(e.data);
@@ -273,6 +413,7 @@ document.addEventListener("DOMContentLoaded", () => {
         mediaRecorder.start();
         isRecording = true;
 
+        micRecordCard.classList.add("mic-recording-active");
         micLed.classList.remove("bg-[#191717]/40");
         micLed.classList.add("bg-[#ff2f11]", "animate-ping");
         micRecordBtn.classList.add("aya-rec-pulse");
@@ -280,12 +421,18 @@ document.addEventListener("DOMContentLoaded", () => {
         micInnerDot.classList.add("rounded-none");
         micLabel.textContent = "RECORDING NOW";
 
+        // Start live frequency VU visualizer
+        startLiveVisualizer(micStream);
+
+        // High-precision digital studio clock (tenths of second)
         recordingTimer = setInterval(() => {
-          recordingSeconds++;
-          const m = String(Math.floor(recordingSeconds / 60)).padStart(2, "0");
-          const s = String(recordingSeconds % 60).padStart(2, "0");
+          const elapsed = Date.now() - recordStartTime;
+          const m = String(Math.floor(elapsed / 60000)).padStart(2, "0");
+          const s = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, "0");
+          const tenth = Math.floor((elapsed % 1000) / 100);
+          if (micPrecisionTimer) micPrecisionTimer.textContent = `${m}:${s}.${tenth}`;
           micSubtext.textContent = `LIVE CAPTURE: ${m}:${s} [TAP TO FINISH]`;
-        }, 1000);
+        }, 100);
 
       } catch (err) {
         alert("Mic permission required: " + err.message);
@@ -297,13 +444,18 @@ document.addEventListener("DOMContentLoaded", () => {
       isRecording = false;
       clearInterval(recordingTimer);
 
+      micRecordCard.classList.remove("mic-recording-active");
       micLed.classList.add("bg-[#191717]/40");
       micLed.classList.remove("bg-[#ff2f11]", "animate-ping");
       micRecordBtn.classList.remove("aya-rec-pulse");
       micInnerDot.classList.add("rounded-full");
       micInnerDot.classList.remove("rounded-none");
-      micLabel.textContent = "CAPTURE VOICE MEMO";
-      micSubtext.textContent = "Direct microphone input for phones & PC";
+      micLabel.textContent = "RECORD MEMO";
+      micSubtext.textContent = "Direct microphone input";
+      if (micPrecisionTimer) micPrecisionTimer.textContent = "00:00.0";
+
+      // Return visualizer to resting heartbeat pulse
+      stopLiveVisualizer();
     }
   });
 
@@ -405,6 +557,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Initialize WaveSurfer
       initWaveSurfer(`/api/audio/${recId}`);
       transcriptSection.classList.remove("hidden");
+      transcriptSection.scrollIntoView({ behavior: "smooth", block: "start" });
 
       renderScreenplay(currentSegments);
       synthesizeStageNotes(currentSegments);
@@ -414,6 +567,18 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       console.error(err);
     }
+  }
+
+  // --- Back to New Transcription Button ---
+  if (backToUploadBtn) {
+    backToUploadBtn.addEventListener("click", () => {
+      if (wavesurfer) {
+        try { wavesurfer.pause(); } catch(e) {}
+      }
+      transcriptSection.classList.add("hidden");
+      audioDock.classList.add("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
   }
 
   // --- Tab 1: Render Script Dialogue ---
@@ -436,7 +601,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (speakerName !== lastSpeaker) {
         lastSpeaker = speakerName;
         currentBlock = document.createElement("div");
-        currentBlock.className = `bg-[#fffdfd] border-2 border-[#191717] p-5 space-y-2.5 shadow-[3px_3px_0px_#191717]`;
+        currentBlock.className = "aya-tile p-4 sm:p-5 space-y-2.5 shadow-[3px_3px_0px_#191717]";
 
         const header = document.createElement("div");
         header.className = "flex items-center justify-between pb-2 border-b-2 border-[#191717]/15";
@@ -591,7 +756,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function switchStageTab(tab) {
     [tabTranscriptBtn, tabSummaryBtn, tabAnalyticsBtn].forEach((b) => {
       b.classList.remove("bg-[#ff2f11]", "text-white");
-      b.classList.add("bg-[#fffdfd]", "text-[#191717]");
+      b.classList.add("bg-[#faf6ed]", "text-[#191717]");
     });
     tabTranscriptView.classList.add("hidden");
     tabSummaryView.classList.add("hidden");
@@ -599,15 +764,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (tab === "transcript") {
       tabTranscriptBtn.classList.add("bg-[#ff2f11]", "text-white");
-      tabTranscriptBtn.classList.remove("bg-[#fffdfd]", "text-[#191717]");
+      tabTranscriptBtn.classList.remove("bg-[#faf6ed]", "text-[#191717]");
       tabTranscriptView.classList.remove("hidden");
     } else if (tab === "summary") {
       tabSummaryBtn.classList.add("bg-[#ff2f11]", "text-white");
-      tabSummaryBtn.classList.remove("bg-[#fffdfd]", "text-[#191717]");
+      tabSummaryBtn.classList.remove("bg-[#faf6ed]", "text-[#191717]");
       tabSummaryView.classList.remove("hidden");
     } else if (tab === "analytics") {
       tabAnalyticsBtn.classList.add("bg-[#ff2f11]", "text-white");
-      tabAnalyticsBtn.classList.remove("bg-[#fffdfd]", "text-[#191717]");
+      tabAnalyticsBtn.classList.remove("bg-[#faf6ed]", "text-[#191717]");
       tabAnalyticsView.classList.remove("hidden");
     }
   }
@@ -648,6 +813,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (dockSpeedCycleBtn) dockSpeedCycleBtn.addEventListener("click", cycleSpeed);
 
   document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeArchiveDrawer();
+      if (renameModal) renameModal.classList.add("hidden");
+      if (exportDropdown) exportDropdown.classList.add("hidden");
+    }
     if (e.code === "Space" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
       e.preventDefault();
       togglePlayPause();
@@ -739,9 +909,20 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // --- Vault Drawer ---
-  historyToggleBtn.addEventListener("click", () => historyDrawer.classList.remove("translate-x-full"));
-  closeDrawerBtn.addEventListener("click", () => historyDrawer.classList.add("translate-x-full"));
+  // --- Vault Drawer (With Back button & Backdrop) ---
+  function openArchiveDrawer() {
+    historyDrawer.classList.remove("translate-x-full");
+    if (historyDrawerBackdrop) historyDrawerBackdrop.classList.remove("hidden");
+  }
+
+  function closeArchiveDrawer() {
+    historyDrawer.classList.add("translate-x-full");
+    if (historyDrawerBackdrop) historyDrawerBackdrop.classList.add("hidden");
+  }
+
+  historyToggleBtn.addEventListener("click", openArchiveDrawer);
+  closeDrawerBtn.addEventListener("click", closeArchiveDrawer);
+  if (historyDrawerBackdrop) historyDrawerBackdrop.addEventListener("click", closeArchiveDrawer);
 
   async function loadRecordingsList() {
     try {
@@ -780,7 +961,7 @@ document.addEventListener("DOMContentLoaded", () => {
         row.addEventListener("click", (e) => {
           if (e.target.closest(".delete-btn")) return;
           loadRecordingDetails(item.id);
-          historyDrawer.classList.add("translate-x-full");
+          closeArchiveDrawer();
         });
 
         const delBtn = row.querySelector(".delete-btn");

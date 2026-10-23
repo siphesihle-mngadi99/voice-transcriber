@@ -3,15 +3,17 @@
 
 :root {
   /* Direct color tokens from Danstheater AYA (https://aya.nl) */
-  --aya-parchment: #f1ead8;      /* Warm Bone / Linen Background */
+  --aya-red: #ff2f11;            /* Iconic AYA Flame Red / Vermilion */
+  --aya-lilac: #c3b5f9;          /* Soft Pastel Lavender / Lilac */
+  --aya-parchment: #f1ead8;      /* Warm Bone / Linen Card Surface */
+  --aya-parchment-light: #faf6ed;/* Elevated parchment tile */
   --aya-white: #fffdfd;          /* Crisp White Surface */
   --aya-black: #191717;          /* Near Black / Deep Ink */
-  --aya-red: #ff2f11;            /* Iconic AYA Flame Red / Vermilion */
   --aya-yellow: #e4fc51;         /* Acid Lime / Highlighter Yellow */
   --aya-blue: #1b4cf4;           /* Electric Cobalt Blue */
   --aya-grey: #948a8a;           /* Muted Editorial Grey */
   --aya-sand: #ded6c1;           /* Warm Sand Border */
-  --aya-sand-dark: #c5bca5;
+  --aya-sand-dark: #c5bca5;      /* Matrix Dots Ink */
 
   --font-stage: 'Noto Sans', 'Inter', -apple-system, sans-serif;
   --font-body: 'Inter', -apple-system, sans-serif;
@@ -25,11 +27,10 @@
 
 body {
   font-family: var(--font-body);
-  background-color: var(--aya-parchment);
+  background-color: var(--aya-red);
   color: var(--aya-black);
   overflow-x: hidden;
-  background-image: radial-gradient(var(--aya-sand) 1px, transparent 1px);
-  background-size: 24px 24px;
+  min-height: 100vh;
 }
 
 .font-stage {
@@ -45,17 +46,34 @@ body {
   font-family: var(--font-body);
 }
 
-/* Brutalist Block Cards */
+/* Brutalist Block Cards with Dotted Warm Bone Parchment Texture */
 .aya-card {
-  background: var(--aya-white);
+  background-color: var(--aya-parchment);
+  background-image: radial-gradient(var(--aya-sand-dark) 1.5px, transparent 1.5px);
+  background-size: 18px 18px;
   border: 2px solid var(--aya-black);
-  box-shadow: 4px 4px 0px 0px var(--aya-black);
+  box-shadow: 6px 6px 0px 0px var(--aya-black);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .aya-card-interactive:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0px 0px var(--aya-black);
+  box-shadow: 8px 8px 0px 0px var(--aya-black);
+}
+
+/* Sub-panels inside the card */
+.aya-tile {
+  background-color: var(--aya-parchment-light);
+  border: 2px solid var(--aya-black);
+  box-shadow: 3px 3px 0px 0px var(--aya-black);
+  transition: all 0.15s ease;
+}
+
+.aya-tile:hover {
+  background-color: var(--aya-white);
+  border-color: var(--aya-black);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px 0px var(--aya-black);
 }
 
 /* Authentic Buttons */
@@ -109,15 +127,6 @@ body {
   box-shadow: 1px 1px 0px 0px var(--aya-black);
 }
 
-.aya-btn-yellow:disabled {
-  background: #ded6c1;
-  color: #7d7563;
-  border-color: #8c826e;
-  box-shadow: none;
-  cursor: not-allowed;
-  transform: none;
-}
-
 .aya-btn-black {
   background: var(--aya-black);
   color: var(--aya-white);
@@ -139,7 +148,7 @@ body {
 }
 
 .aya-btn-white {
-  background: var(--aya-white);
+  background: var(--aya-parchment-light);
   color: var(--aya-black);
   font-family: var(--font-stage);
   font-weight: 800;
@@ -151,7 +160,7 @@ body {
 .aya-btn-white:hover:not(:disabled) {
   transform: translate(-1px, -1px);
   box-shadow: 4px 4px 0px 0px var(--aya-black);
-  background: #fbf8f0;
+  background: #ffffff;
 }
 
 .aya-btn-white:active:not(:disabled) {
@@ -171,7 +180,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border: 1.5px solid var(--aya-black);
-  background: var(--aya-white);
+  background: var(--aya-parchment-light);
   color: var(--aya-black);
   box-shadow: 2px 2px 0px 0px var(--aya-black);
 }
@@ -211,12 +220,12 @@ body {
 }
 
 .script-line:hover {
-  background: rgba(25, 23, 23, 0.04);
+  background: rgba(25, 23, 23, 0.05);
 }
 
 .script-line.active-line {
   border-left-color: var(--aya-red) !important;
-  background: rgba(228, 252, 81, 0.35) !important;
+  background: rgba(228, 252, 81, 0.45) !important;
   color: var(--aya-black) !important;
   box-shadow: inset 3px 0 0 0 var(--aya-red);
 }
@@ -242,7 +251,7 @@ body {
   width: 100%;
   border-radius: 0px;
   overflow: hidden;
-  background: var(--aya-white);
+  background: var(--aya-parchment-light);
   border: 2px solid var(--aya-black);
   box-shadow: 3px 3px 0px 0px var(--aya-black);
   padding: 10px 14px;
@@ -250,7 +259,9 @@ body {
 
 /* Floating Audio Bar (Only shown when scrolling past audio deck) */
 .aya-floating-bar {
-  background: var(--aya-white);
+  background: var(--aya-parchment);
+  background-image: radial-gradient(var(--aya-sand-dark) 1.5px, transparent 1.5px);
+  background-size: 18px 18px;
   border: 2px solid var(--aya-black);
   box-shadow: 5px 5px 0px 0px var(--aya-black);
 }
@@ -271,3 +282,25 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--aya-red);
 }
+
+/* Utility to hide scrollbar for horizontal tabs */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Studio Oscilloscope Canvas */
+#liveAudioVisualizer {
+  image-rendering: pixelated;
+  width: 100%;
+}
+
+.mic-recording-active {
+  border-color: var(--aya-red) !important;
+  background-color: #fff9f8 !important;
+  box-shadow: 4px 4px 0px 0px var(--aya-red) !important;
+}
+

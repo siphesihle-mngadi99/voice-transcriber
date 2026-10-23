@@ -10,6 +10,22 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fragment+Mono:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans:wght@700;800;900&display=swap" rel="stylesheet">
   
+  <!-- Favicon and App Icons (VS Logo) -->
+  <link rel="icon" type="image/svg+xml" href="/static/assets/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/assets/icon-32.png">
+  <link rel="shortcut icon" href="/static/assets/favicon.ico">
+  
+  <!-- Apple Touch Icon (iOS Home Screen) -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="VoiceScribe">
+  
+  <!-- Web App Manifest (Android & PWA) -->
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#ff2f11">
+  <meta name="mobile-web-app-capable" content="yes">
+  
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/static/styles.css">
@@ -21,27 +37,44 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-[#ff2f11] selection:text-white pb-28">
+<body class="min-h-screen flex flex-col antialiased selection:bg-[#191717] selection:text-[#f1ead8] pb-20 sm:pb-28">
 
-  <!-- Top Navigation: Clean, Minimal Brutalist Header -->
-  <header class="border-b-2 border-[#191717] bg-[#f1ead8]/95 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-8 py-3.5">
+  <!-- AYA Signature Theatrical Backdrop: Flame Red Canvas + Organic Lavender Wave + Topographic Linework -->
+  <div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden bg-[#ff2f11]" aria-hidden="true">
+    <svg class="absolute bottom-0 left-0 w-full h-[62vh] min-h-[400px] text-[#c3b5f9]" viewBox="0 0 1440 600" preserveAspectRatio="none" fill="currentColor">
+      <!-- Topographic Contour Isobars (Acoustic Topography) -->
+      <path d="M0,130 C320,-10 540,200 840,100 C1140,0 1320,150 1440,80" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="4 8" opacity="0.28"></path>
+      <path d="M0,165 C320,25 540,235 840,135 C1140,35 1320,185 1440,115" fill="none" stroke="#191717" stroke-width="1.2" opacity="0.18"></path>
+      <path d="M0,195 C320,55 540,265 840,165 C1140,65 1320,215 1440,145" fill="none" stroke="#ffffff" stroke-width="1.2" stroke-dasharray="2 4" opacity="0.25"></path>
+      
+      <!-- Main Organic Lavender Body -->
+      <path d="M0,220 C320,80 540,290 840,190 C1140,90 1320,240 1440,170 L1440,600 L0,600 Z"></path>
+      
+      <!-- Lower Contour Echo Lines inside Lavender -->
+      <path d="M0,260 C320,120 540,330 840,230 C1140,130 1320,280 1440,210" fill="none" stroke="#191717" stroke-width="1.2" opacity="0.15"></path>
+      <path d="M0,300 C320,160 540,370 840,270 C1140,170 1320,320 1440,250" fill="none" stroke="#ffffff" stroke-width="1" stroke-dasharray="4 6" opacity="0.28"></path>
+    </svg>
+  </div>
+
+  <!-- Top Navigation: Grounded Warm Parchment Header -->
+  <header class="border-b-2 border-[#191717] bg-[#f1ead8] sticky top-0 z-40 px-3 sm:px-8 py-2.5 sm:py-3.5 shadow-[0px_3px_0px_#191717]">
     <div class="max-w-5xl w-full mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 sm:gap-3">
         <!-- Brand Mark -->
-        <div class="w-10 h-10 bg-[#ff2f11] border-2 border-[#191717] shadow-[2px_2px_0px_#191717] flex items-center justify-center font-stage font-black text-white text-base">
+        <div class="w-8 h-8 sm:w-10 sm:h-10 bg-[#ff2f11] border-2 border-[#191717] shadow-[2px_2px_0px_#191717] flex items-center justify-center font-stage font-black text-white text-sm sm:text-base shrink-0">
           VS
         </div>
-        <span class="font-stage font-black text-xl tracking-tight text-[#191717] uppercase">VOICESCRIBE</span>
+        <span class="font-stage font-black text-base sm:text-xl tracking-tight text-[#191717] uppercase">VOICESCRIBE</span>
       </div>
 
       <!-- Right Header Actions -->
-      <div class="flex items-center gap-2.5">
-        <button id="copyShareBtn" class="aya-btn-white py-1.5 px-3 flex items-center gap-1.5 text-xs uppercase font-mono font-bold" title="Copy shareable link">
+      <div class="flex items-center gap-2">
+        <button id="copyShareBtn" class="aya-btn-white py-1 px-2.5 sm:py-1.5 sm:px-3 flex items-center gap-1.5 text-xs uppercase font-mono font-bold" title="Copy shareable link">
           <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
-          <span>SHARE</span>
+          <span class="hidden sm:inline">SHARE</span>
         </button>
 
-        <button id="historyToggleBtn" class="aya-btn-white py-1.5 px-3 flex items-center gap-2 text-xs uppercase font-mono font-bold">
+        <button id="historyToggleBtn" class="aya-btn-white py-1 px-2.5 sm:py-1.5 sm:px-3 flex items-center gap-1.5 sm:gap-2 text-xs uppercase font-mono font-bold">
           <i data-lucide="archive" class="w-3.5 h-3.5 text-[#191717]"></i>
           <span>ARCHIVE</span>
           <span id="recordingCountBadge" class="bg-[#191717] text-white px-1.5 py-0.2 rounded-none font-mono text-[10px]">0</span>
@@ -51,93 +84,119 @@
   </header>
 
   <!-- Main Canvas -->
-  <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+  <main class="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6">
     
-    <!-- Direct, Bold Title (Zero Fluff) -->
-    <div class="flex items-baseline justify-between pt-1">
-      <h1 class="text-2xl sm:text-3xl font-stage font-black tracking-tight text-[#191717] uppercase">
+    <!-- Bold AYA Title on Red Canvas -->
+    <div class="pt-0.5">
+      <h1 class="text-2xl sm:text-4xl font-stage font-black tracking-tight text-[#191717] uppercase drop-shadow-[1px_1px_0px_rgba(255,255,255,0.4)]">
         AUDIO TRANSCRIBER
       </h1>
-      <span class="text-xs font-mono font-bold text-[#191717]/60 uppercase hidden sm:inline">LOCAL INFERENCE // NO LIMITS</span>
     </div>
 
-    <!-- Audio Ingestion Panel -->
-    <section class="aya-card p-6 sm:p-8 space-y-6">
+    <!-- Audio Ingestion Panel (Textured Dotted Warm Bone Parchment Card) -->
+    <section class="aya-card p-4 sm:p-8 space-y-4 sm:space-y-6">
       
-      <!-- Ingestion Row: Drag & Drop and Live Voice Memo -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      <!-- Ingestion Row: Drag & Drop and Live Voice Memo with Visualizer -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
         
         <!-- Drop Stage -->
-        <div id="dropzone" class="bg-[#fffdfd] border-2 border-dashed border-[#191717] hover:bg-[#faf6ed] hover:border-[#ff2f11] p-6 flex items-center gap-4 cursor-pointer transition-all group shadow-[2px_2px_0px_#191717]">
+        <div id="dropzone" class="aya-tile p-3.5 sm:p-5 flex flex-col justify-between gap-3 cursor-pointer group min-h-[140px]">
           <input type="file" id="fileInput" class="hidden" accept=".mp3,.wav,.m4a,.aac,.ogg,.flac,.wma,.webm,.opus,.mp4">
-          <div class="w-14 h-14 bg-[#191717] text-white flex items-center justify-center shrink-0 group-hover:bg-[#ff2f11] transition-colors border-2 border-[#191717] shadow-[2px_2px_0px_#191717]">
-            <i data-lucide="arrow-up" class="w-6 h-6 stroke-[2.5]"></i>
+          <div class="flex items-center gap-3 sm:gap-4">
+            <div class="w-11 h-11 sm:w-14 sm:h-14 bg-[#191717] text-white flex items-center justify-center shrink-0 group-hover:bg-[#ff2f11] transition-colors border-2 border-[#191717] shadow-[2px_2px_0px_#191717]">
+              <i data-lucide="arrow-up" class="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <span class="font-stage font-black text-xs sm:text-sm text-[#191717] uppercase tracking-wide block truncate">IMPORT AUDIO FILE</span>
+              <p class="text-[11px] sm:text-xs font-mono text-[#191717]/70 mt-0.5 truncate">Drop or tap (.m4a, .mp3, .wav)</p>
+            </div>
           </div>
-          <div>
-            <span class="font-stage font-black text-sm text-[#191717] uppercase tracking-wide block">IMPORT AUDIO FILE</span>
-            <p class="text-xs font-mono text-[#191717]/70 mt-0.5">Drop .m4a, .mp3, .wav (3h+ supported)</p>
+          <div class="flex items-center gap-1.5 pt-1 border-t border-[#191717]/10 text-[10px] font-mono font-bold text-[#191717]/60">
+            <span>SUPPORTED:</span>
+            <span class="text-[#ff2f11]">.M4A</span>
+            <span>.MP3</span>
+            <span>.WAV</span>
+            <span>.FLAC</span>
+            <span>.AAC</span>
           </div>
         </div>
 
-        <!-- Voice Memo Mic -->
-        <div id="micRecordCard" class="bg-[#fffdfd] border-2 border-[#191717] hover:bg-[#faf6ed] hover:border-[#ff2f11] p-6 flex items-center gap-4 cursor-pointer transition-all group shadow-[2px_2px_0px_#191717]">
-          <div id="micRecordBtn" class="w-14 h-14 bg-[#ff2f11] border-2 border-[#191717] flex items-center justify-center shrink-0 group-hover:scale-105 transition-all shadow-[2px_2px_0px_#191717]">
-            <div id="micInnerDot" class="w-5 h-5 rounded-full bg-white transition-all"></div>
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <span id="micLed" class="w-2.5 h-2.5 rounded-full bg-[#191717]/40"></span>
-              <span id="micLabel" class="font-stage font-black text-sm text-[#191717] uppercase tracking-wide">CAPTURE VOICE MEMO</span>
+        <!-- Voice Memo Mic with Integrated Oscilloscope / VU Visualizer -->
+        <div id="micRecordCard" class="aya-tile p-3.5 sm:p-5 flex flex-col justify-between gap-3 cursor-pointer group min-h-[140px]">
+          <div class="flex items-center gap-3 sm:gap-4">
+            <div id="micRecordBtn" class="w-11 h-11 sm:w-14 sm:h-14 bg-[#ff2f11] border-2 border-[#191717] flex items-center justify-center shrink-0 group-hover:scale-105 transition-all shadow-[2px_2px_0px_#191717]">
+              <div id="micInnerDot" class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white transition-all"></div>
             </div>
-            <p id="micSubtext" class="text-xs font-mono text-[#191717]/70 mt-0.5">Direct microphone input for phones & PC</p>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5 sm:gap-2 truncate">
+                  <span id="micLed" class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#191717]/40 shrink-0"></span>
+                  <span id="micLabel" class="font-stage font-black text-xs sm:text-sm text-[#191717] uppercase tracking-wide truncate">RECORD VOICE MEMO</span>
+                </div>
+                <span id="micPrecisionTimer" class="font-mono text-xs font-black text-[#ff2f11] ml-1">00:00.0</span>
+              </div>
+              <p id="micSubtext" class="text-[11px] sm:text-xs font-mono text-[#191717]/70 mt-0.5 truncate">Direct microphone input</p>
+            </div>
+          </div>
+
+          <!-- Real-time Oscilloscope / VU Audio Spectrum Canvas -->
+          <div class="w-full bg-[#ded6c1]/70 border border-[#191717] p-1 shadow-[inset_1px_1px_2px_rgba(0,0,0,0.1)]">
+            <canvas id="liveAudioVisualizer" class="w-full h-8 sm:h-9 block" height="36"></canvas>
           </div>
         </div>
 
       </div>
 
       <!-- Selected File Notification Banner -->
-      <div id="selectedFileBanner" class="hidden bg-[#e4fc51] border-2 border-[#191717] p-3.5 flex items-center justify-between gap-3 shadow-[2px_2px_0px_#191717]">
-        <div class="flex items-center gap-3 truncate">
-          <span class="aya-badge-black text-[10px]">QUEUED FILE</span>
+      <div id="selectedFileBanner" class="hidden bg-[#e4fc51] border-2 border-[#191717] p-3 flex items-center justify-between gap-2 shadow-[3px_3px_0px_#191717]">
+        <div class="flex items-center gap-2.5 truncate">
+          <span class="aya-badge-black text-[9px] sm:text-[10px] shrink-0">QUEUED</span>
           <span id="selectedFileName" class="text-xs font-mono font-bold text-[#191717] truncate">recording.m4a</span>
         </div>
-        <button id="clearFileBtn" class="text-[#191717] hover:text-[#ff2f11] p-1 font-bold">
+        <button id="clearFileBtn" class="text-[#191717] hover:text-[#ff2f11] p-1 font-bold shrink-0">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
-      <!-- Settings Switchboard: Model Size & Speaker Detection -->
-      <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t-2 border-[#191717]/15">
+      <!-- Controls Switchboard: Model Size & Speaker Detection -->
+      <div class="space-y-3.5 pt-3 border-t-2 border-[#191717]/15">
         
-        <!-- Model Engine Segmented Switch -->
-        <div class="flex items-center gap-2.5">
-          <span class="text-xs font-mono font-black text-[#191717] uppercase">Engine:</span>
-          <div class="flex border-2 border-[#191717] bg-[#f1ead8] p-1 gap-1 font-mono text-xs font-bold">
-            <button class="model-pill px-3 py-1 bg-transparent text-[#191717] hover:bg-[#fffdfd] transition" data-model="tiny">TINY (Fast)</button>
-            <button class="model-pill active px-3 py-1 bg-[#ff2f11] text-white font-bold transition shadow-[1px_1px_0px_#191717]" data-model="base">BASE (Balanced)</button>
-            <button class="model-pill px-3 py-1 bg-transparent text-[#191717] hover:bg-[#fffdfd] transition" data-model="small">SMALL (Accurate)</button>
+        <!-- Model Engine Segmented Grid -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between text-xs font-mono font-black text-[#191717] uppercase">
+            <span>Model Engine</span>
+            <span class="text-[10px] text-[#191717]/60 font-semibold lowercase">base recommended</span>
+          </div>
+          <div class="grid grid-cols-3 border-2 border-[#191717] bg-[#ded6c1] p-1 gap-1 font-mono text-xs font-bold text-center shadow-[2px_2px_0px_#191717]">
+            <button class="model-pill py-1.5 sm:py-2 bg-transparent text-[#191717] hover:bg-[#faf6ed] transition" data-model="tiny">TINY</button>
+            <button class="model-pill active py-1.5 sm:py-2 bg-[#ff2f11] text-white font-bold transition shadow-[1px_1px_0px_#191717]" data-model="base">BASE</button>
+            <button class="model-pill py-1.5 sm:py-2 bg-transparent text-[#191717] hover:bg-[#faf6ed] transition" data-model="small">ACCURATE</button>
           </div>
         </div>
 
-        <!-- Speaker Diarization Switch -->
-        <div class="flex items-center gap-3">
-          <span class="text-xs font-mono font-black text-[#191717] uppercase">SPEAKER DIARIZATION</span>
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" id="diarizationToggle" checked class="sr-only peer">
-            <div class="w-12 h-6 bg-[#ded6c1] border-2 border-[#191717] peer-focus:outline-none peer peer-checked:after:translate-x-full peer-checked:after:border-[#191717] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#191717] after:border-2 after:border-[#191717] after:h-4 after:w-5 after:transition-all peer-checked:bg-[#e4fc51] peer-checked:after:bg-[#191717]"></div>
-          </label>
+        <!-- Speaker Detection Row -->
+        <div class="flex items-center justify-between pt-1">
+          <div>
+            <span class="text-xs font-mono font-black text-[#191717] uppercase block">Identify Speakers</span>
+            <span class="text-[10px] sm:text-[11px] font-mono text-[#191717]/60">Label different voices</span>
+          </div>
+          <div class="flex border-2 border-[#191717] bg-[#ded6c1] p-1 gap-1 font-mono text-xs font-bold shrink-0 shadow-[2px_2px_0px_#191717]">
+            <button type="button" id="diarizeOffBtn" class="diarize-pill px-3 py-1 bg-transparent text-[#191717] hover:bg-[#faf6ed] transition">OFF</button>
+            <button type="button" id="diarizeOnBtn" class="diarize-pill active px-3 py-1 bg-[#ff2f11] text-white font-bold transition shadow-[1px_1px_0px_#191717]">ON</button>
+          </div>
+          <input type="checkbox" id="diarizationToggle" checked class="hidden">
         </div>
 
       </div>
 
       <!-- Action Button -->
-      <button id="startTranscribeBtn" disabled class="aya-btn-red w-full py-4 px-6 text-sm uppercase tracking-wider font-black disabled:cursor-not-allowed flex items-center justify-center gap-2">
+      <button id="startTranscribeBtn" disabled class="aya-btn-red w-full py-3.5 sm:py-4 px-5 text-sm uppercase tracking-wider font-black disabled:cursor-not-allowed flex items-center justify-center gap-2">
         <i data-lucide="play" class="w-4 h-4 fill-white"></i>
         <span>TRANSCRIBE AUDIO</span>
       </button>
 
       <!-- Dynamic Progress Banner -->
-      <div id="progressContainer" class="hidden pt-4 space-y-2 border-t-2 border-[#191717]/15">
+      <div id="progressContainer" class="hidden pt-3 space-y-2 border-t-2 border-[#191717]/15">
         <div class="flex items-center justify-between text-xs font-mono font-bold">
           <span id="progressStatusText" class="text-[#ff2f11] flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-[#ff2f11] animate-ping"></span>
@@ -145,7 +204,7 @@
           </span>
           <span id="progressPercent" class="font-bold text-[#191717]">0%</span>
         </div>
-        <div class="w-full h-3 bg-[#e6dfcc] border-2 border-[#191717] overflow-hidden">
+        <div class="w-full h-3 bg-[#ded6c1] border-2 border-[#191717] overflow-hidden">
           <div id="progressBar" class="h-full bg-[#ff2f11] transition-all duration-300 w-0"></div>
         </div>
         <p id="liveTranscriptPreview" class="text-xs font-mono text-[#191717]/70 truncate italic"></p>
@@ -153,43 +212,49 @@
 
     </section>
 
-    <!-- Interactive Transcript & WaveSurfer Section -->
-    <section id="transcriptSection" class="hidden aya-card p-6 sm:p-8 space-y-6">
+    <!-- Interactive Transcript & WaveSurfer Section (Dotted Parchment Surface) -->
+    <section id="transcriptSection" class="hidden aya-card p-4 sm:p-8 space-y-4 sm:space-y-6">
       
       <!-- Header & Quick Actions -->
-      <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b-2 border-[#191717]/15">
-        <div>
-          <h2 id="currentTitle" class="text-2xl sm:text-3xl font-stage font-black text-[#191717] tracking-tight uppercase">
-            TRANSCRIPT
-          </h2>
-          <div class="flex items-center gap-3 text-xs font-mono text-[#191717]/70 mt-1 font-semibold">
-            <span id="currentDuration" class="text-[#ff2f11] font-bold">00:00:00</span>
-            <span>&bull;</span>
-            <span id="segmentCount">0 segments</span>
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 sm:pb-4 border-b-2 border-[#191717]/15">
+        <div class="flex items-center gap-3">
+          <button id="backToUploadBtn" class="aya-btn-white py-1 px-2.5 sm:py-1.5 sm:px-3 text-xs uppercase font-mono font-bold flex items-center gap-1.5 hover:bg-[#e4fc51] transition" title="Back to new transcription">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+            <span>BACK</span>
+          </button>
+          <div>
+            <h2 id="currentTitle" class="text-lg sm:text-2xl font-stage font-black text-[#191717] tracking-tight uppercase truncate max-w-[200px] sm:max-w-md">
+              TRANSCRIPT
+            </h2>
+            <div class="flex items-center gap-2.5 text-xs font-mono text-[#191717]/70 mt-0.5 font-semibold">
+              <span id="currentDuration" class="text-[#ff2f11] font-bold">00:00:00</span>
+              <span>&bull;</span>
+              <span id="segmentCount">0 segments</span>
+            </div>
           </div>
         </div>
 
         <!-- Search, Copy & Export Actions -->
-        <div class="flex items-center gap-2.5">
-          <div class="relative">
-            <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#191717]/60"></i>
-            <input type="text" id="searchInput" placeholder="Search script..." class="bg-[#fffdfd] border-2 border-[#191717] pl-8 pr-3 py-1.5 text-xs text-[#191717] placeholder-[#191717]/50 focus:outline-none focus:bg-[#faf6ed] w-36 sm:w-48 font-mono shadow-[2px_2px_0px_#191717]">
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <div class="relative flex-1 sm:flex-initial">
+            <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-[#191717]/60"></i>
+            <input type="text" id="searchInput" placeholder="Search..." class="bg-[#faf6ed] border-2 border-[#191717] pl-8 pr-2.5 py-1 text-xs text-[#191717] placeholder-[#191717]/50 focus:outline-none focus:bg-white w-full sm:w-44 font-mono shadow-[2px_2px_0px_#191717]">
           </div>
 
-          <button id="copyTranscriptBtn" class="aya-btn-white py-1.5 px-3 flex items-center gap-1.5 text-xs font-mono">
+          <button id="copyTranscriptBtn" class="aya-btn-white py-1 px-2.5 sm:py-1.5 sm:px-3 flex items-center gap-1 text-xs font-mono shrink-0">
             <i data-lucide="copy" class="w-3.5 h-3.5"></i>
             <span class="hidden sm:inline">COPY</span>
           </button>
 
           <!-- Export Dropdown -->
-          <div class="relative inline-block text-left">
-            <button id="exportMenuBtn" class="aya-btn-red px-3.5 py-1.5 text-xs uppercase flex items-center gap-1.5">
+          <div class="relative inline-block text-left shrink-0">
+            <button id="exportMenuBtn" class="aya-btn-red px-2.5 py-1 sm:px-3.5 sm:py-1.5 text-xs uppercase flex items-center gap-1 font-bold">
               <i data-lucide="download" class="w-3.5 h-3.5"></i>
               <span>EXPORT</span>
             </button>
-            <div id="exportDropdown" class="hidden absolute right-0 mt-2 w-52 bg-[#fffdfd] border-2 border-[#191717] p-1.5 z-50 text-xs font-mono shadow-[5px_5px_0px_#191717]">
+            <div id="exportDropdown" class="hidden absolute right-0 mt-2 w-48 sm:w-52 bg-[#f1ead8] border-2 border-[#191717] p-1.5 z-50 text-xs font-mono shadow-[5px_5px_0px_#191717]">
               <button class="export-opt w-full text-left px-3 py-2 hover:bg-[#e4fc51] font-bold flex items-center gap-2 text-[#191717]" data-format="md">
-                <span class="aya-badge-black text-[9px]">MD</span> Markdown Notes
+                <span class="aya-badge-black text-[9px]">MD</span> Markdown
               </button>
               <button class="export-opt w-full text-left px-3 py-2 hover:bg-[#e4fc51] font-bold flex items-center gap-2 text-[#191717]" data-format="srt">
                 <span class="aya-badge-yellow text-[9px]">SRT</span> Subtitles
@@ -198,7 +263,7 @@
                 <span class="aya-badge-white text-[9px]">TXT</span> Plain Text
               </button>
               <button class="export-opt w-full text-left px-3 py-2 hover:bg-[#e4fc51] font-bold flex items-center gap-2 text-[#191717]" data-format="json">
-                <span class="aya-badge-red text-[9px]">JSON</span> Raw Data
+                <span class="aya-badge-red text-[9px]">JSON</span> Raw JSON
               </button>
             </div>
           </div>
@@ -206,11 +271,11 @@
       </div>
 
       <!-- Real WaveSurfer Waveform Playback Deck -->
-      <div class="space-y-3 bg-[#faf6ed] border-2 border-[#191717] p-4 shadow-[3px_3px_0px_#191717]">
+      <div class="space-y-2.5 bg-[#faf6ed] border-2 border-[#191717] p-3 sm:p-4 shadow-[3px_3px_0px_#191717]">
         <div class="flex items-center justify-between text-[11px] font-mono text-[#191717] font-bold">
           <span class="flex items-center gap-1.5 text-[#ff2f11]">
             <i data-lucide="activity" class="w-3.5 h-3.5"></i>
-            AUDIO WAVEFORM (CLICK TO SCRUB)
+            AUDIO WAVEFORM
           </span>
           <span id="waveformTimeDisplay">00:00 / 00:00</span>
         </div>
@@ -219,27 +284,27 @@
         <div id="waveformContainer"></div>
 
         <!-- Embedded Audio Transport Controls -->
-        <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-          <div class="flex items-center gap-2.5">
-            <button id="playPauseBtn" class="aya-btn-red w-10 h-10 flex items-center justify-center shrink-0" title="Play / Pause (Spacebar)">
+        <div class="flex flex-wrap items-center justify-between gap-2.5 pt-1">
+          <div class="flex items-center gap-2">
+            <button id="playPauseBtn" class="aya-btn-red w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center shrink-0" title="Play / Pause (Spacebar)">
               <i data-lucide="play" class="w-4 h-4 ml-0.5 fill-white" id="playIcon"></i>
             </button>
-            <button id="skipBackBtn" class="aya-btn-white w-9 h-9 flex items-center justify-center" title="Rewind 10s">
+            <button id="skipBackBtn" class="aya-btn-white w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center" title="Rewind 10s">
               <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
             </button>
-            <button id="skipForwardBtn" class="aya-btn-white w-9 h-9 flex items-center justify-center" title="Forward 10s">
+            <button id="skipForwardBtn" class="aya-btn-white w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center" title="Forward 10s">
               <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
             </button>
           </div>
 
-          <div class="flex items-center gap-2 font-mono text-xs font-bold bg-[#fffdfd] border-2 border-[#191717] px-3 py-1.5 shadow-[2px_2px_0px_#191717]">
+          <div class="flex items-center gap-2 font-mono text-xs font-bold bg-[#faf6ed] border-2 border-[#191717] px-2.5 py-1 sm:px-3 sm:py-1.5 shadow-[2px_2px_0px_#191717]">
             <span id="currentTimeDisplay" class="text-[#ff2f11]">00:00</span>
             <span class="text-[#191717]/40">/</span>
             <span id="totalTimeDisplay" class="text-[#191717]">00:00</span>
           </div>
 
           <div class="flex items-center gap-2">
-            <button id="speedCycleBtn" class="aya-btn-yellow px-3 py-1.5 text-xs font-mono font-black" title="Playback Speed">
+            <button id="speedCycleBtn" class="aya-btn-yellow px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs font-mono font-black" title="Playback Speed">
               1.0×
             </button>
           </div>
@@ -247,52 +312,52 @@
       </div>
 
       <!-- Content Tabs -->
-      <div class="flex items-center gap-2 border-b-2 border-[#191717]/15 pb-3 font-mono text-xs font-black">
-        <button id="tabTranscriptBtn" class="px-4 py-2 bg-[#ff2f11] text-white border-2 border-[#191717] shadow-[2px_2px_0px_#191717] transition">
-          01 // TRANSCRIPT
+      <div class="flex items-center gap-1.5 sm:gap-2 border-b-2 border-[#191717]/15 pb-2.5 font-mono text-xs font-black overflow-x-auto scrollbar-none">
+        <button id="tabTranscriptBtn" class="px-3 py-1.5 sm:px-4 sm:py-2 bg-[#ff2f11] text-white border-2 border-[#191717] shadow-[2px_2px_0px_#191717] whitespace-nowrap transition">
+          01 // SCRIPT
         </button>
-        <button id="tabSummaryBtn" class="px-4 py-2 bg-[#fffdfd] text-[#191717] hover:bg-[#e4fc51] border-2 border-[#191717] shadow-[2px_2px_0px_#191717] transition">
-          02 // ACTION ITEMS & NOTES
+        <button id="tabSummaryBtn" class="px-3 py-1.5 sm:px-4 sm:py-2 bg-[#faf6ed] text-[#191717] hover:bg-[#e4fc51] border-2 border-[#191717] shadow-[2px_2px_0px_#191717] whitespace-nowrap transition">
+          02 // ACTION ITEMS
         </button>
-        <button id="tabAnalyticsBtn" class="px-4 py-2 bg-[#fffdfd] text-[#191717] hover:bg-[#e4fc51] border-2 border-[#191717] shadow-[2px_2px_0px_#191717] transition">
-          03 // SPEAKER BREAKDOWN
+        <button id="tabAnalyticsBtn" class="px-3 py-1.5 sm:px-4 sm:py-2 bg-[#faf6ed] text-[#191717] hover:bg-[#e4fc51] border-2 border-[#191717] shadow-[2px_2px_0px_#191717] whitespace-nowrap transition">
+          03 // SPEAKERS
         </button>
       </div>
 
       <!-- Tab 1: Script Dialogue -->
-      <div id="tabTranscriptView" class="space-y-4 max-h-[550px] overflow-y-auto pr-2">
-        <div id="transcriptFeed" class="space-y-4">
+      <div id="tabTranscriptView" class="space-y-3.5 max-h-[500px] sm:max-h-[550px] overflow-y-auto pr-1">
+        <div id="transcriptFeed" class="space-y-3.5">
           <!-- Populated by JavaScript -->
         </div>
       </div>
 
       <!-- Tab 2: Action Items & Chronological Outline -->
-      <div id="tabSummaryView" class="hidden space-y-6 max-h-[550px] overflow-y-auto pr-2">
-        <div class="bg-[#fffdfd] border-2 border-[#191717] p-5 space-y-3 shadow-[3px_3px_0px_#191717]">
+      <div id="tabSummaryView" class="hidden space-y-4 max-h-[500px] sm:max-h-[550px] overflow-y-auto pr-1">
+        <div class="aya-tile p-4 sm:p-5 space-y-2.5 shadow-[3px_3px_0px_#191717]">
           <div class="flex items-center gap-2">
             <span class="aya-badge-red text-[10px]">ACTION ITEMS</span>
-            <span class="text-xs font-mono font-bold text-[#191717]/70">Extracted Commitments</span>
+            <span class="text-xs font-mono font-bold text-[#191717]/70">Extracted Tasks</span>
           </div>
-          <ul id="actionItemsList" class="space-y-2.5 text-sm font-body text-[#191717]">
+          <ul id="actionItemsList" class="space-y-2 text-sm font-body text-[#191717]">
             <!-- Populated by JavaScript -->
           </ul>
         </div>
-        <div class="bg-[#fffdfd] border-2 border-[#191717] p-5 space-y-3 shadow-[3px_3px_0px_#191717]">
+        <div class="aya-tile p-4 sm:p-5 space-y-2.5 shadow-[3px_3px_0px_#191717]">
           <div class="flex items-center gap-2">
-            <span class="aya-badge-yellow text-[10px]">CHRONOLOGICAL OUTLINE</span>
-            <span class="text-xs font-mono font-bold text-[#191717]/70">Timeline Summary</span>
+            <span class="aya-badge-yellow text-[10px]">TIMELINE</span>
+            <span class="text-xs font-mono font-bold text-[#191717]/70">Chronological Outline</span>
           </div>
-          <div id="outlineList" class="space-y-3 text-sm font-body text-[#191717]">
+          <div id="outlineList" class="space-y-2.5 text-sm font-body text-[#191717]">
             <!-- Populated by JavaScript -->
           </div>
         </div>
       </div>
 
       <!-- Tab 3: Speaker Talk-Time Breakdown -->
-      <div id="tabAnalyticsView" class="hidden space-y-4 max-h-[550px] overflow-y-auto pr-2">
-        <div class="bg-[#fffdfd] border-2 border-[#191717] p-5 space-y-4 shadow-[3px_3px_0px_#191717]">
-          <span class="aya-badge-black text-[10px]">SPEAKER TALK-TIME DISTRIBUTION</span>
-          <div id="speakerStatsFeed" class="space-y-4 pt-2">
+      <div id="tabAnalyticsView" class="hidden space-y-3.5 max-h-[500px] sm:max-h-[550px] overflow-y-auto pr-1">
+        <div class="aya-tile p-4 sm:p-5 space-y-3 shadow-[3px_3px_0px_#191717]">
+          <span class="aya-badge-black text-[10px]">SPEAKER DISTRIBUTION</span>
+          <div id="speakerStatsFeed" class="space-y-3 pt-1">
             <!-- Populated by JavaScript -->
           </div>
         </div>
@@ -303,23 +368,23 @@
   </main>
 
   <!-- Sticky Bottom Audio Bar (Only shown when scrolling past the embedded player) -->
-  <div id="audioDock" class="hidden fixed bottom-4 left-4 right-4 max-w-2xl mx-auto aya-floating-bar p-3.5 z-50 flex items-center justify-between gap-4 transition-all">
+  <div id="audioDock" class="hidden fixed bottom-3 left-3 right-3 max-w-2xl mx-auto aya-floating-bar p-2.5 sm:p-3.5 z-50 flex items-center justify-between gap-3 transition-all">
     <!-- Left: Transport Controls -->
-    <div class="flex items-center gap-2.5">
-      <button id="dockPlayPauseBtn" class="aya-btn-red w-10 h-10 flex items-center justify-center shrink-0">
+    <div class="flex items-center gap-2">
+      <button id="dockPlayPauseBtn" class="aya-btn-red w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center shrink-0">
         <i data-lucide="play" class="w-4 h-4 ml-0.5 fill-white" id="dockPlayIcon"></i>
       </button>
 
-      <button id="dockSkipBackBtn" class="aya-btn-white w-9 h-9 flex items-center justify-center" title="Rewind 10s">
+      <button id="dockSkipBackBtn" class="aya-btn-white w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center" title="Rewind 10s">
         <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
       </button>
-      <button id="dockSkipForwardBtn" class="aya-btn-white w-9 h-9 flex items-center justify-center" title="Forward 10s">
+      <button id="dockSkipForwardBtn" class="aya-btn-white w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center" title="Forward 10s">
         <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
       </button>
     </div>
 
     <!-- Center: Time display -->
-    <div class="flex items-center gap-2 font-mono text-xs font-bold">
+    <div class="flex items-center gap-1.5 font-mono text-xs font-bold">
       <span id="dockCurrentTimeDisplay" class="text-[#ff2f11]">00:00</span>
       <span class="text-[#191717]/40">/</span>
       <span id="dockTotalTimeDisplay" class="text-[#191717]">00:00</span>
@@ -327,22 +392,26 @@
 
     <!-- Right: Speed Selector -->
     <div class="flex items-center gap-2">
-      <button id="dockSpeedCycleBtn" class="aya-btn-yellow px-3 py-1.5 text-xs font-mono font-black">
+      <button id="dockSpeedCycleBtn" class="aya-btn-yellow px-2.5 py-1 text-xs font-mono font-black">
         1.0×
       </button>
     </div>
   </div>
 
+  <!-- Archive Drawer Backdrop (Click outside to close) -->
+  <div id="historyDrawerBackdrop" class="hidden fixed inset-0 bg-[#191717]/60 backdrop-blur-sm z-40 transition-opacity cursor-pointer"></div>
+
   <!-- Recordings Archive Drawer -->
-  <div id="historyDrawer" class="fixed inset-y-0 right-0 w-84 max-w-[85vw] bg-[#f1ead8] border-l-2 border-[#191717] shadow-[-6px_0px_0px_#191717] z-50 transform translate-x-full transition-transform duration-300 p-6 flex flex-col font-mono">
+  <div id="historyDrawer" class="fixed inset-y-0 right-0 w-84 max-w-[85vw] bg-[#f1ead8] border-l-2 border-[#191717] shadow-[-6px_0px_0px_#191717] z-50 transform translate-x-full transition-transform duration-300 p-5 sm:p-6 flex flex-col font-mono">
     <div class="flex items-center justify-between pb-4 border-b-2 border-[#191717] mb-4">
+      <button id="closeDrawerBtn" class="aya-btn-white py-1 px-3 flex items-center gap-1.5 text-xs font-mono font-bold" title="Back to workspace">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+        <span>BACK</span>
+      </button>
       <h3 class="font-stage font-black text-sm text-[#191717] uppercase flex items-center gap-2">
         <i data-lucide="archive" class="w-4 h-4 text-[#ff2f11]"></i>
-        RECORDINGS ARCHIVE
+        ARCHIVE
       </h3>
-      <button id="closeDrawerBtn" class="aya-btn-white p-1">
-        <i data-lucide="x" class="w-4 h-4"></i>
-      </button>
     </div>
     <div id="historyList" class="flex-1 overflow-y-auto space-y-2.5 pr-1">
       <!-- Injected by JavaScript -->
@@ -351,14 +420,14 @@
 
   <!-- Rename Speaker Modal -->
   <div id="renameSpeakerModal" class="hidden fixed inset-0 bg-[#191717]/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 font-mono">
-    <div class="bg-[#fffdfd] border-2 border-[#191717] max-w-sm w-full p-6 shadow-[8px_8px_0px_#191717] space-y-4">
+    <div class="bg-[#f1ead8] border-2 border-[#191717] max-w-sm w-full p-5 sm:p-6 shadow-[8px_8px_0px_#191717] space-y-4">
       <span class="aya-badge-red text-[10px]">SPEAKER SETTINGS</span>
       <h3 class="font-stage font-black text-base text-[#191717] uppercase">RENAME SPEAKER</h3>
       <p class="text-xs text-[#191717]/70 font-sans">Updates this speaker name across the entire transcript.</p>
-      <input type="text" id="speakerRenameInput" class="w-full bg-[#faf6ed] border-2 border-[#191717] px-4 py-2.5 text-sm text-[#191717] focus:outline-none focus:bg-white font-mono shadow-[2px_2px_0px_#191717]" placeholder="e.g. Alex, Sarah, Narrator">
+      <input type="text" id="speakerRenameInput" class="w-full bg-[#faf6ed] border-2 border-[#191717] px-3.5 py-2 text-sm text-[#191717] focus:outline-none focus:bg-white font-mono shadow-[2px_2px_0px_#191717]" placeholder="e.g. Alex, Sarah">
       <div class="flex justify-end gap-2.5 pt-2">
-        <button id="cancelRenameBtn" class="aya-btn-white px-4 py-2 text-xs font-bold">Cancel</button>
-        <button id="saveRenameBtn" class="aya-btn-red px-4 py-2 text-xs uppercase font-black">Save Speaker</button>
+        <button id="cancelRenameBtn" class="aya-btn-white px-3.5 py-1.5 text-xs font-bold">Cancel</button>
+        <button id="saveRenameBtn" class="aya-btn-red px-4 py-1.5 text-xs uppercase font-black">Save Speaker</button>
       </div>
     </div>
   </div>
