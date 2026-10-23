@@ -83,6 +83,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const exportDropdown = document.getElementById("exportDropdown");
   const waveformTimeDisplay = document.getElementById("waveformTimeDisplay");
 
+  // Embedded Transport Controls
+  const playPauseBtn = document.getElementById("playPauseBtn");
+  const playIcon = document.getElementById("playIcon");
+  const skipBackBtn = document.getElementById("skipBackBtn");
+  const skipForwardBtn = document.getElementById("skipForwardBtn");
+  const currentTimeDisplay = document.getElementById("currentTimeDisplay");
+  const totalTimeDisplay = document.getElementById("totalTimeDisplay");
+  const speedCycleBtn = document.getElementById("speedCycleBtn");
+
+  // Floating Console Elements (Dock)
+  const audioDock = document.getElementById("audioDock");
+  const dockPlayPauseBtn = document.getElementById("dockPlayPauseBtn");
+  const dockPlayIcon = document.getElementById("dockPlayIcon");
+  const dockSkipBackBtn = document.getElementById("dockSkipBackBtn");
+  const dockSkipForwardBtn = document.getElementById("dockSkipForwardBtn");
+  const dockCurrentTimeDisplay = document.getElementById("dockCurrentTimeDisplay");
+  const dockTotalTimeDisplay = document.getElementById("dockTotalTimeDisplay");
+  const dockSpeedCycleBtn = document.getElementById("dockSpeedCycleBtn");
+
   // Screenplay Tabs
   const tabTranscriptBtn = document.getElementById("tabTranscriptBtn");
   const tabSummaryBtn = document.getElementById("tabSummaryBtn");
@@ -95,27 +114,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const outlineList = document.getElementById("outlineList");
   const speakerStatsFeed = document.getElementById("speakerStatsFeed");
 
-  // Floating Console Elements
-  const playPauseBtn = document.getElementById("playPauseBtn");
-  const playIcon = document.getElementById("playIcon");
-  const skipBackBtn = document.getElementById("skipBackBtn");
-  const skipForwardBtn = document.getElementById("skipForwardBtn");
-  const currentTimeDisplay = document.getElementById("currentTimeDisplay");
-  const totalTimeDisplay = document.getElementById("totalTimeDisplay");
-  const speedCycleBtn = document.getElementById("speedCycleBtn");
-
   // Rename Modal
   const renameModal = document.getElementById("renameSpeakerModal");
   const speakerRenameInput = document.getElementById("speakerRenameInput");
   const saveRenameBtn = document.getElementById("saveRenameBtn");
   const cancelRenameBtn = document.getElementById("cancelRenameBtn");
 
-  // Theatrical Stage Lighting Performer Badges
+  // Authentic AYA Poster Performer Badges
   const PERFORMER_PALETTES = [
-    { badge: "text-blue-400 border-blue-500/40 bg-blue-500/10", dot: "bg-blue-400" },
-    { badge: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10", dot: "bg-emerald-400" },
-    { badge: "text-rose-400 border-rose-500/40 bg-rose-500/10", dot: "bg-rose-400" },
-    { badge: "text-purple-400 border-purple-500/40 bg-purple-500/10", dot: "bg-purple-400" },
+    { badge: "bg-[#ff2f11] text-white border-2 border-[#191717] shadow-[2px_2px_0px_#191717]", dot: "bg-white" },
+    { badge: "bg-[#e4fc51] text-[#191717] border-2 border-[#191717] shadow-[2px_2px_0px_#191717]", dot: "bg-[#191717]" },
+    { badge: "bg-[#1b4cf4] text-white border-2 border-[#191717] shadow-[2px_2px_0px_#191717]", dot: "bg-white" },
+    { badge: "bg-[#191717] text-white border-2 border-[#191717] shadow-[2px_2px_0px_#ff2f11]", dot: "bg-[#e4fc51]" },
   ];
 
   // --- Initial Load ---
@@ -134,16 +144,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById("waveformContainer");
     container.innerHTML = "";
 
+    // Authentic AYA colors: Warm sand ink base with AYA Vermilion Flame Red progress
     wavesurfer = WaveSurfer.create({
       container: container,
-      waveColor: "#27272A",
-      progressColor: "#2563EB",
-      cursorColor: "#FF2D55",
+      waveColor: "#c5bca5",
+      progressColor: "#ff2f11",
+      cursorColor: "#191717",
       cursorWidth: 2,
       barWidth: 2,
       barGap: 2,
-      barRadius: 2,
-      height: 72,
+      barRadius: 0,
+      height: 68,
       normalize: true,
       url: audioUrl,
     });
@@ -151,11 +162,13 @@ document.addEventListener("DOMContentLoaded", () => {
     wavesurfer.on("ready", () => {
       const duration = wavesurfer.getDuration();
       totalTimeDisplay.textContent = formatTime(duration);
+      if (dockTotalTimeDisplay) dockTotalTimeDisplay.textContent = formatTime(duration);
       waveformTimeDisplay.textContent = `00:00 / ${formatTime(duration)}`;
     });
 
     wavesurfer.on("timeupdate", (currentTime) => {
       currentTimeDisplay.textContent = formatTime(currentTime);
+      if (dockCurrentTimeDisplay) dockCurrentTimeDisplay.textContent = formatTime(currentTime);
       waveformTimeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(wavesurfer.getDuration())}`;
 
       // Karaoke line sync
@@ -184,11 +197,11 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".model-pill").forEach((btn) => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".model-pill").forEach((b) => {
-        b.classList.remove("bg-[#2563EB]", "text-white");
-        b.classList.add("text-neutral-400");
+        b.classList.remove("bg-[#ff2f11]", "text-white", "shadow-[1px_1px_0px_#191717]");
+        b.classList.add("bg-transparent", "text-[#191717]");
       });
-      btn.classList.add("bg-[#2563EB]", "text-white");
-      btn.classList.remove("text-neutral-400");
+      btn.classList.add("bg-[#ff2f11]", "text-white", "shadow-[1px_1px_0px_#191717]");
+      btn.classList.remove("bg-transparent", "text-[#191717]");
       selectedModel = btn.dataset.model;
     });
   });
@@ -198,16 +211,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   dropzone.addEventListener("dragover", (e) => {
     e.preventDefault();
-    dropzone.classList.add("border-blue-500", "scale-[1.01]");
+    dropzone.classList.add("border-[#ff2f11]", "bg-[#faf6ed]");
   });
 
   dropzone.addEventListener("dragleave", () => {
-    dropzone.classList.remove("border-blue-500", "scale-[1.01]");
+    dropzone.classList.remove("border-[#ff2f11]", "bg-[#faf6ed]");
   });
 
   dropzone.addEventListener("drop", (e) => {
     e.preventDefault();
-    dropzone.classList.remove("border-blue-500", "scale-[1.01]");
+    dropzone.classList.remove("border-[#ff2f11]", "bg-[#faf6ed]");
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFile(e.dataTransfer.files[0]);
     }
@@ -261,10 +274,11 @@ document.addEventListener("DOMContentLoaded", () => {
         mediaRecorder.start();
         isRecording = true;
 
-        micLed.classList.add("bg-rose-500", "animate-ping");
-        micRecordBtn.classList.add("stage-rec-pulse");
+        micLed.classList.remove("bg-[#191717]/40");
+        micLed.classList.add("bg-[#ff2f11]", "animate-ping");
+        micRecordBtn.classList.add("aya-rec-pulse");
         micInnerDot.classList.remove("rounded-full");
-        micInnerDot.classList.add("rounded-sm");
+        micInnerDot.classList.add("rounded-none");
         micLabel.textContent = "RECORDING NOW";
 
         recordingTimer = setInterval(() => {
@@ -284,10 +298,11 @@ document.addEventListener("DOMContentLoaded", () => {
       isRecording = false;
       clearInterval(recordingTimer);
 
-      micLed.classList.remove("bg-rose-500", "animate-ping");
-      micRecordBtn.classList.remove("stage-rec-pulse");
+      micLed.classList.add("bg-[#191717]/40");
+      micLed.classList.remove("bg-[#ff2f11]", "animate-ping");
+      micRecordBtn.classList.remove("aya-rec-pulse");
       micInnerDot.classList.add("rounded-full");
-      micInnerDot.classList.remove("rounded-sm");
+      micInnerDot.classList.remove("rounded-none");
       micLabel.textContent = "CAPTURE VOICE MEMO";
       micSubtext.textContent = "Direct microphone input for phones & PC";
     }
@@ -301,7 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
     progressContainer.classList.remove("hidden");
     progressBar.style.width = "5%";
     progressPercent.textContent = "5%";
-    progressStatusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span> INGESTING AUDIO STREAM...`;
+    progressStatusText.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#ff2f11] animate-ping"></span> INGESTING AUDIO STREAM...`;
 
     const formData = new FormData();
     formData.append("file", selectedFile);
@@ -345,7 +360,7 @@ document.addEventListener("DOMContentLoaded", () => {
         progressPercent.textContent = `${Math.round(progress)}%`;
 
         if (data.message) {
-          progressStatusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span> ${data.message.toUpperCase()}`;
+          progressStatusText.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#ff2f11] animate-ping"></span> ${data.message.toUpperCase()}`;
           liveTranscriptPreview.textContent = `> ${data.message}`;
         }
 
@@ -358,7 +373,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }, 800);
         } else if (progress < 0) {
           eventSource.close();
-          progressStatusText.innerHTML = `<span class="text-rose-400 font-bold">⚠️ ${data.message}</span>`;
+          progressStatusText.innerHTML = `<span class="text-[#ff2f11] font-bold">⚠️ ${data.message}</span>`;
           startTranscribeBtn.disabled = false;
         }
       } catch (err) {
@@ -385,6 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
       currentTitle.textContent = rec.title || rec.filename;
       currentDuration.textContent = formatTime(rec.duration || 0);
       totalTimeDisplay.textContent = formatTime(rec.duration || 0);
+      if (dockTotalTimeDisplay) dockTotalTimeDisplay.textContent = formatTime(rec.duration || 0);
       segmentCount.textContent = `${currentSegments.length} segments`;
 
       // Initialize WaveSurfer
@@ -405,7 +421,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderScreenplay(segments) {
     transcriptFeed.innerHTML = "";
     if (!segments || segments.length === 0) {
-      transcriptFeed.innerHTML = `<p class="text-xs font-mono text-neutral-400 italic p-4 text-center">NO DIALOGUE SIGNALS RECORDED ON STAGE.</p>`;
+      transcriptFeed.innerHTML = `<p class="text-xs font-mono text-[#191717]/60 italic p-4 text-center">NO DIALOGUE SIGNALS RECORDED ON STAGE.</p>`;
       return;
     }
 
@@ -421,19 +437,19 @@ document.addEventListener("DOMContentLoaded", () => {
       if (speakerName !== lastSpeaker) {
         lastSpeaker = speakerName;
         currentBlock = document.createElement("div");
-        currentBlock.className = `bg-[#0B0C0F] border border-white/10 rounded-xl p-5 space-y-2.5`;
+        currentBlock.className = `bg-[#fffdfd] border-2 border-[#191717] p-5 space-y-2.5 shadow-[3px_3px_0px_#191717]`;
 
         const header = document.createElement("div");
-        header.className = "flex items-center justify-between pb-2 border-b border-white/10";
+        header.className = "flex items-center justify-between pb-2 border-b-2 border-[#191717]/15";
 
         const speakerBadge = document.createElement("button");
-        speakerBadge.className = `backstage-pass ${palette.badge} cursor-pointer hover:border-white transition flex items-center gap-2`;
+        speakerBadge.className = `aya-badge ${palette.badge} cursor-pointer transition flex items-center gap-2`;
         speakerBadge.title = "Tap to rename performer";
 
         speakerBadge.innerHTML = `
           <span class="w-1.5 h-1.5 rounded-full ${palette.dot}"></span>
-          <span class="font-stage font-bold">${escapeHtml(speakerName.toUpperCase())}</span>
-          <i data-lucide="edit-3" class="w-3 h-3 opacity-60"></i>
+          <span class="font-stage font-black text-xs">${escapeHtml(speakerName.toUpperCase())}</span>
+          <i data-lucide="edit-3" class="w-3 h-3 opacity-80"></i>
         `;
         speakerBadge.addEventListener("click", () => openRenameModal(speakerTag, speakerName));
 
@@ -445,13 +461,13 @@ document.addEventListener("DOMContentLoaded", () => {
       // Screenplay Line
       const lineItem = document.createElement("div");
       lineItem.id = `segment-${index}`;
-      lineItem.className = "script-line p-2.5 rounded-lg flex items-start gap-3 cursor-pointer";
+      lineItem.className = "script-line p-2.5 flex items-start gap-3 cursor-pointer";
       lineItem.dataset.start = seg.start_time;
       lineItem.dataset.end = seg.end_time;
 
       lineItem.innerHTML = `
-        <span class="font-mono text-[11px] text-blue-400 font-bold shrink-0 pt-0.5 select-none">[${formatTime(seg.start_time)}]</span>
-        <p class="text-sm font-body text-neutral-200 hover:text-white leading-relaxed select-text flex-1 font-light">${escapeHtml(seg.text)}</p>
+        <span class="font-mono text-[11px] text-[#ff2f11] font-black shrink-0 pt-0.5 select-none">[${formatTime(seg.start_time)}]</span>
+        <p class="text-sm font-body text-[#191717] leading-relaxed select-text flex-1">${escapeHtml(seg.text)}</p>
       `;
 
       lineItem.addEventListener("click", () => {
@@ -475,36 +491,44 @@ document.addEventListener("DOMContentLoaded", () => {
     outlineList.innerHTML = "";
     if (!segments || segments.length === 0) return;
 
-    const keywords = ["action", "todo", "need to", "will", "deadline", "by next", "agreed", "plan", "deliverable", "follow up"];
+    const keywords = ["action", "todo", "need to", "will", "deadline", "by next", "agreed", "plan", "deliverable", "follow up", "important"];
     const actions = [];
     const timeline = {};
 
     segments.forEach((seg) => {
       const lower = seg.text.toLowerCase();
-      const speaker = seg.speaker_name || seg.speaker || "Speaker";
-
-      if (keywords.some((k) => lower.includes(k)) && actions.length < 8 && seg.text.length > 20) {
-        actions.push({ text: seg.text, speaker: speaker, time: seg.start_time });
+      if (keywords.some((kw) => lower.includes(kw))) {
+        actions.push({
+          speaker: seg.speaker_name || seg.speaker || "Speaker",
+          text: seg.text,
+          time: seg.start_time,
+        });
       }
 
-      const block = Math.floor(seg.start_time / 300);
-      if (!timeline[block]) timeline[block] = { start: seg.start_time, items: [] };
-      if (timeline[block].items.length < 2 && seg.text.length > 30) {
-        timeline[block].items.push(seg.text);
+      // 60-second scene clusters
+      const bucket = Math.floor(seg.start_time / 60);
+      if (!timeline[bucket]) {
+        timeline[bucket] = {
+          start: bucket * 60,
+          items: [],
+        };
+      }
+      if (timeline[bucket].items.length < 2) {
+        timeline[bucket].items.push(seg.text);
       }
     });
 
     if (actions.length === 0) {
-      actionItemsList.innerHTML = `<li class="text-neutral-500 font-mono text-xs italic">No explicit commitments detected in script.</li>`;
+      actionItemsList.innerHTML = `<li class="text-xs font-mono text-[#191717]/60 italic p-2">NO FORMAL COMMITMENT MARKERS FOUND.</li>`;
     } else {
       actions.forEach((a) => {
         const li = document.createElement("li");
-        li.className = "p-3 rounded-lg bg-[#111216] border border-white/10 flex items-start gap-3";
+        li.className = "p-3 bg-[#faf6ed] border-2 border-[#191717] flex items-start gap-3 shadow-[2px_2px_0px_#191717]";
         li.innerHTML = `
-          <span class="backstage-pass text-blue-400 border-blue-500/30 text-[9px] mt-0.5">${formatTime(a.time)}</span>
+          <span class="aya-badge-red text-[9px] mt-0.5 shrink-0">${formatTime(a.time)}</span>
           <div class="flex-1">
-            <span class="font-mono font-bold text-xs text-white uppercase">${escapeHtml(a.speaker)}:</span>
-            <span class="text-neutral-200 ml-1 leading-relaxed">${escapeHtml(a.text)}</span>
+            <span class="font-mono font-black text-xs text-[#191717] uppercase">${escapeHtml(a.speaker)}:</span>
+            <span class="text-[#191717] ml-1 leading-relaxed font-medium">${escapeHtml(a.text)}</span>
           </div>
         `;
         actionItemsList.appendChild(li);
@@ -514,10 +538,10 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.keys(timeline).forEach((key) => {
       const data = timeline[key];
       const div = document.createElement("div");
-      div.className = "p-3.5 rounded-lg bg-[#111216] border border-white/10 space-y-1";
+      div.className = "p-3.5 bg-[#faf6ed] border-2 border-[#191717] space-y-1 shadow-[2px_2px_0px_#191717]";
       div.innerHTML = `
-        <div class="font-mono text-xs font-bold text-emerald-400">ACT SCENE @ ${formatTime(data.start)}</div>
-        <p class="text-xs text-neutral-300 leading-relaxed font-light">${escapeHtml(data.items.join(" "))}</p>
+        <div class="font-mono text-xs font-black text-[#ff2f11]">ACT SCENE @ ${formatTime(data.start)}</div>
+        <p class="text-xs text-[#191717] leading-relaxed font-medium">${escapeHtml(data.items.join(" "))}</p>
       `;
       outlineList.appendChild(div);
     });
@@ -539,21 +563,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const entries = Object.entries(stats).sort((a, b) => b[1] - a[1]);
-    const palette = ["bg-blue-600", "bg-emerald-500", "bg-rose-500", "bg-purple-500"];
+    const palette = ["bg-[#ff2f11]", "bg-[#e4fc51]", "bg-[#1b4cf4]", "bg-[#191717]"];
 
     entries.forEach(([speaker, time], idx) => {
       const pct = totalTime > 0 ? ((time / totalTime) * 100).toFixed(1) : 0;
       const barColor = palette[idx % palette.length];
 
       const row = document.createElement("div");
-      row.className = "p-3.5 rounded-lg bg-[#111216] border border-white/10 space-y-1.5";
+      row.className = "p-3.5 bg-[#faf6ed] border-2 border-[#191717] space-y-1.5 shadow-[2px_2px_0px_#191717]";
       row.innerHTML = `
         <div class="flex items-center justify-between text-xs font-mono font-bold">
-          <span class="text-white uppercase">${escapeHtml(speaker)}</span>
-          <span class="text-blue-400">${formatTime(time)} // ${pct}%</span>
+          <span class="text-[#191717] uppercase font-black">${escapeHtml(speaker)}</span>
+          <span class="text-[#ff2f11] font-black">${formatTime(time)} // ${pct}%</span>
         </div>
-        <div class="w-full h-2 bg-black border border-white/20 rounded-full overflow-hidden">
-          <div class="h-full ${barColor} rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+        <div class="w-full h-3 bg-[#e6dfcc] border-2 border-[#191717] overflow-hidden">
+          <div class="h-full ${barColor} transition-all duration-500" style="width: ${pct}%"></div>
         </div>
       `;
       speakerStatsFeed.appendChild(row);
@@ -567,57 +591,81 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function switchStageTab(tab) {
     [tabTranscriptBtn, tabSummaryBtn, tabAnalyticsBtn].forEach((b) => {
-      b.classList.remove("bg-[#2563EB]", "text-white", "border-blue-400");
-      b.classList.add("bg-black", "text-neutral-400", "border-white/15");
+      b.classList.remove("bg-[#ff2f11]", "text-white");
+      b.classList.add("bg-[#fffdfd]", "text-[#191717]");
     });
     tabTranscriptView.classList.add("hidden");
     tabSummaryView.classList.add("hidden");
     tabAnalyticsView.classList.add("hidden");
 
     if (tab === "transcript") {
-      tabTranscriptBtn.classList.add("bg-[#2563EB]", "text-white", "border-blue-400");
-      tabTranscriptBtn.classList.remove("bg-black", "text-neutral-400", "border-white/15");
+      tabTranscriptBtn.classList.add("bg-[#ff2f11]", "text-white");
+      tabTranscriptBtn.classList.remove("bg-[#fffdfd]", "text-[#191717]");
       tabTranscriptView.classList.remove("hidden");
     } else if (tab === "summary") {
-      tabSummaryBtn.classList.add("bg-[#2563EB]", "text-white", "border-blue-400");
-      tabSummaryBtn.classList.remove("bg-black", "text-neutral-400", "border-white/15");
+      tabSummaryBtn.classList.add("bg-[#ff2f11]", "text-white");
+      tabSummaryBtn.classList.remove("bg-[#fffdfd]", "text-[#191717]");
       tabSummaryView.classList.remove("hidden");
     } else if (tab === "analytics") {
-      tabAnalyticsBtn.classList.add("bg-[#2563EB]", "text-white", "border-blue-400");
-      tabAnalyticsBtn.classList.remove("bg-black", "text-neutral-400", "border-white/15");
+      tabAnalyticsBtn.classList.add("bg-[#ff2f11]", "text-white");
+      tabAnalyticsBtn.classList.remove("bg-[#fffdfd]", "text-[#191717]");
       tabAnalyticsView.classList.remove("hidden");
     }
   }
 
-  // --- Transport Controls (WaveSurfer-Linked) ---
-  playPauseBtn.addEventListener("click", () => {
+  // --- Transport Controls (Linked to WaveSurfer) ---
+  function togglePlayPause() {
     if (wavesurfer) wavesurfer.playPause();
-  });
+  }
+
+  playPauseBtn.addEventListener("click", togglePlayPause);
+  if (dockPlayPauseBtn) dockPlayPauseBtn.addEventListener("click", togglePlayPause);
 
   function setPlayState(playing) {
     playIcon.setAttribute("data-lucide", playing ? "pause" : "play");
+    if (dockPlayIcon) dockPlayIcon.setAttribute("data-lucide", playing ? "pause" : "play");
     if (window.lucide) lucide.createIcons();
   }
 
-  skipBackBtn.addEventListener("click", () => {
-    if (wavesurfer) wavesurfer.skip(-10);
-  });
+  function handleSkip(sec) {
+    if (wavesurfer) wavesurfer.skip(sec);
+  }
 
-  skipForwardBtn.addEventListener("click", () => {
-    if (wavesurfer) wavesurfer.skip(10);
-  });
+  skipBackBtn.addEventListener("click", () => handleSkip(-10));
+  if (dockSkipBackBtn) dockSkipBackBtn.addEventListener("click", () => handleSkip(-10));
 
-  speedCycleBtn.addEventListener("click", () => {
+  skipForwardBtn.addEventListener("click", () => handleSkip(10));
+  if (dockSkipForwardBtn) dockSkipForwardBtn.addEventListener("click", () => handleSkip(10));
+
+  function cycleSpeed() {
     currentSpeedIdx = (currentSpeedIdx + 1) % speeds.length;
     const speed = speeds[currentSpeedIdx];
     if (wavesurfer) wavesurfer.setPlaybackRate(speed);
     speedCycleBtn.textContent = `${speed}×`;
-  });
+    if (dockSpeedCycleBtn) dockSpeedCycleBtn.textContent = `${speed}×`;
+  }
+
+  speedCycleBtn.addEventListener("click", cycleSpeed);
+  if (dockSpeedCycleBtn) dockSpeedCycleBtn.addEventListener("click", cycleSpeed);
 
   document.addEventListener("keydown", (e) => {
     if (e.code === "Space" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
       e.preventDefault();
-      if (wavesurfer) wavesurfer.playPause();
+      togglePlayPause();
+    }
+  });
+
+  // --- Show Floating Dock ONLY when scrolled past embedded player ---
+  window.addEventListener("scroll", () => {
+    if (!transcriptSection.classList.contains("hidden") && wavesurfer) {
+      const rect = transcriptSection.getBoundingClientRect();
+      if (rect.top < -80 && rect.bottom > 250) {
+        audioDock.classList.remove("hidden");
+      } else {
+        audioDock.classList.add("hidden");
+      }
+    } else {
+      audioDock.classList.add("hidden");
     }
   });
 
@@ -667,7 +715,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     navigator.clipboard.writeText(full).then(() => {
       const original = copyTranscriptBtn.innerHTML;
-      copyTranscriptBtn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-blue-400"></i> COPIED`;
+      copyTranscriptBtn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-[#ff2f11]"></i> COPIED`;
       if (window.lucide) lucide.createIcons();
       setTimeout(() => {
         copyTranscriptBtn.innerHTML = original;
@@ -706,26 +754,26 @@ document.addEventListener("DOMContentLoaded", () => {
       historyList.innerHTML = "";
 
       if (list.length === 0) {
-        historyList.innerHTML = `<p class="text-xs font-mono text-neutral-500 italic p-3 text-center">NO ARCHIVED SESSIONS</p>`;
+        historyList.innerHTML = `<p class="text-xs font-mono text-[#191717]/60 italic p-3 text-center">NO ARCHIVED SESSIONS</p>`;
         return;
       }
 
       list.forEach((item) => {
         const row = document.createElement("div");
-        row.className = `p-3.5 rounded-xl bg-[#111216] border border-white/10 hover:border-blue-500/60 cursor-pointer transition flex items-center justify-between group ${
-          item.id === currentRecordingId ? "border-blue-500 bg-blue-500/10" : ""
+        row.className = `p-3.5 bg-[#fffdfd] border-2 border-[#191717] hover:bg-[#e4fc51] cursor-pointer transition-all shadow-[2px_2px_0px_#191717] flex items-center justify-between group ${
+          item.id === currentRecordingId ? "border-[#ff2f11] bg-[#faf6ed]" : ""
         }`;
 
         row.innerHTML = `
           <div class="truncate flex-1 pr-2">
-            <h4 class="text-xs font-stage font-bold text-white group-hover:text-blue-400 truncate uppercase">${escapeHtml(item.title || item.filename)}</h4>
-            <div class="flex items-center gap-2 text-[10px] font-mono text-neutral-400 mt-1">
+            <h4 class="text-xs font-stage font-black text-[#191717] group-hover:text-[#ff2f11] truncate uppercase">${escapeHtml(item.title || item.filename)}</h4>
+            <div class="flex items-center gap-2 text-[10px] font-mono text-[#191717]/70 font-bold mt-1">
               <span>${item.duration ? formatTime(item.duration) : item.status}</span>
               <span>&bull;</span>
               <span>${item.created_at ? item.created_at.slice(0, 10) : ""}</span>
             </div>
           </div>
-          <button class="delete-btn opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-rose-400 transition" title="Delete">
+          <button class="delete-btn opacity-60 group-hover:opacity-100 p-1 text-[#191717] hover:text-[#ff2f11] transition" title="Delete">
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
           </button>
         `;
@@ -743,6 +791,7 @@ document.addEventListener("DOMContentLoaded", () => {
             await fetch(`/api/recordings/${item.id}`, { method: "DELETE" });
             if (currentRecordingId === item.id) {
               transcriptSection.classList.add("hidden");
+              audioDock.classList.add("hidden");
               currentRecordingId = null;
             }
             loadRecordingsList();

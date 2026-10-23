@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>VoiceScribe // Theatrical Audio Engine</title>
+  <title>VoiceScribe // Danstheater AYA Theatrical Audio Engine</title>
   
-  <!-- Theatrical Brutalist Typography: Syne (Ultra Bold) + Space Grotesk + JetBrains Mono -->
+  <!-- Authentic AYA Typography: Noto Sans (Black 900) + Inter + Fragment Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Space+Grotesk:wght@500;700;800&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fragment+Mono:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans:wght@700;800;900&display=swap" rel="stylesheet">
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -21,36 +21,37 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-[#07080A] text-[#F8FAFC] min-h-screen flex flex-col antialiased selection:bg-[#2563EB] selection:text-white pb-36">
+<body class="min-h-screen flex flex-col antialiased selection:bg-[#ff2f11] selection:text-white pb-28">
 
-  <!-- Top Navigation: Theatrical Stage Header -->
-  <header class="border-b border-white/10 bg-[#07080A]/80 backdrop-blur-xl sticky top-0 z-40 px-4 sm:px-8 py-4">
+  <!-- Top Navigation: AYA Brutalist Theatrical Header -->
+  <header class="border-b-2 border-[#191717] bg-[#f1ead8]/95 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-8 py-3.5">
     <div class="max-w-6xl w-full mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3.5">
-        <div class="w-9 h-9 bg-[#2563EB] border border-white/20 flex items-center justify-center font-stage font-black text-white text-base shadow-lg shadow-blue-600/30">
+      <div class="flex items-center gap-3">
+        <!-- AYA Signature Brand Mark -->
+        <div class="w-10 h-10 bg-[#ff2f11] border-2 border-[#191717] shadow-[2px_2px_0px_#191717] flex items-center justify-center font-stage font-black text-white text-base">
           VS
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <span class="font-stage font-black text-base tracking-tight text-white uppercase">VOICESCRIBE</span>
-            <span class="backstage-pass text-blue-400 border-blue-500/30">STAGE ENGINE</span>
+            <span class="font-stage font-black text-lg tracking-tight text-[#191717] uppercase">VOICESCRIBE</span>
+            <span class="aya-badge-yellow text-[10px] px-1.5 py-0.5 border border-[#191717]">DANSTHEATER AYA</span>
           </div>
-          <p class="text-[11px] font-mono text-neutral-400">On-Device • Zero Cloud Caps</p>
+          <p class="text-[11px] font-mono text-[#191717]/70 font-semibold uppercase">On-Device • Zero Cloud Caps • 3h+ Capacity</p>
         </div>
       </div>
 
       <!-- Right Header Actions -->
       <div class="flex items-center gap-3">
-        <div id="sharePill" class="hidden sm:flex items-center gap-2 backstage-pass text-neutral-300">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="text-[11px] text-neutral-400">Wi-Fi Stream</span>
-          <button id="copyShareBtn" class="text-blue-400 hover:text-blue-300 pl-1 border-l border-white/10 font-bold transition">Share Link</button>
+        <div id="sharePill" class="hidden sm:flex items-center gap-2 aya-badge bg-white">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-[11px] font-mono font-bold text-[#191717]">WI-FI STREAM</span>
+          <button id="copyShareBtn" class="text-[#ff2f11] hover:underline pl-1 border-l border-[#191717]/20 font-bold transition">Share Link</button>
         </div>
 
-        <button id="historyToggleBtn" class="backstage-pass hover:border-white/40 text-neutral-200 hover:text-white transition flex items-center gap-2 py-1.5">
-          <i data-lucide="folder" class="w-3.5 h-3.5 text-blue-400"></i>
-          <span>ARCHIVE</span>
-          <span id="recordingCountBadge" class="bg-white/10 px-1.5 rounded font-mono text-[10px]">0</span>
+        <button id="historyToggleBtn" class="aya-btn-white py-1.5 px-3 flex items-center gap-2 text-xs uppercase font-mono">
+          <i data-lucide="archive" class="w-3.5 h-3.5 text-[#191717]"></i>
+          <span class="font-bold">ARCHIVE</span>
+          <span id="recordingCountBadge" class="bg-[#191717] text-white px-1.5 py-0.2 rounded-none font-mono text-[10px]">0</span>
         </button>
       </div>
     </div>
@@ -59,129 +60,128 @@
   <!-- Main Stage Canvas -->
   <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
     
-    <!-- Hero Poster Statement -->
-    <div class="space-y-3 pt-2">
+    <!-- Hero Poster Statement (AYA Authentic Poster Typography) -->
+    <div class="space-y-4 pt-2">
       <div class="flex flex-wrap gap-2">
-        <span class="backstage-pass text-emerald-400 border-emerald-500/30">3H+ UNBOUNDED CAPACITY</span>
-        <span class="backstage-pass text-blue-400 border-blue-500/30">RYZEN 5 CPU INFERENCE</span>
-        <span class="backstage-pass text-rose-400 border-rose-500/30">ACOUSTIC DIARIZATION</span>
+        <span class="aya-badge-black">[ 3H+ UNBOUNDED CAPACITY ]</span>
+        <span class="aya-badge-yellow">[ RYZEN 5 CPU INFERENCE ]</span>
+        <span class="aya-badge-red">[ ACOUSTIC DIARIZATION ]</span>
       </div>
 
-      <h1 class="text-4xl sm:text-6xl font-stage font-black tracking-tight text-white leading-none uppercase">
+      <h1 class="text-4xl sm:text-6xl md:text-7xl font-stage font-black tracking-tighter text-[#191717] leading-[0.92] uppercase">
         RAW VOICES.<br>
-        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-indigo-300 to-rose-400">
-          TRANSCRIBED ON STAGE.
-        </span>
+        <span class="bg-[#ff2f11] text-white px-2 py-0.5 inline-block my-1 shadow-[3px_3px_0px_#191717]">TRANSCRIBED LIVE.</span><br>
+        ON STAGE.
       </h1>
 
-      <p class="text-sm sm:text-base text-neutral-400 max-w-xl font-body">
-        A theatrical-grade audio transcription pipeline. Ingest multi-hour recordings, cluster speaker dialogues, and scrub interactive waveforms without cloud caps.
+      <p class="text-sm sm:text-base text-[#191717]/80 max-w-2xl font-body leading-relaxed font-medium">
+        A theatrical-grade audio transcription pipeline engineered for full artistic autonomy. Ingest multi-hour audio recordings, cluster speaker dialogue with acoustic diarization, and scrub interactive waveforms without cloud caps or subscriptions.
       </p>
     </div>
 
     <!-- Theatrical Ingestion Stage Deck -->
-    <section class="stage-panel rounded-2xl p-6 sm:p-8 space-y-6">
+    <section class="aya-card p-6 sm:p-8 space-y-6">
       
       <!-- Ingestion Row: Drag Drop Stage & Live Voice Memo -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         
         <!-- Drop Stage -->
-        <div id="dropzone" class="bg-[#0B0C0F] border-2 border-dashed border-white/20 hover:border-blue-500 p-6 rounded-xl flex items-center gap-4 cursor-pointer transition group">
+        <div id="dropzone" class="bg-[#fffdfd] border-2 border-dashed border-[#191717] hover:bg-[#faf6ed] hover:border-[#ff2f11] p-6 flex items-center gap-4 cursor-pointer transition-all group shadow-[2px_2px_0px_#191717]">
           <input type="file" id="fileInput" class="hidden" accept=".mp3,.wav,.m4a,.aac,.ogg,.flac,.wma,.webm,.opus,.mp4">
-          <div class="w-14 h-14 bg-white/5 border border-white/15 flex items-center justify-center shrink-0 group-hover:scale-105 transition text-blue-400">
-            <i data-lucide="arrow-up" class="w-6 h-6 stroke-[2.2]"></i>
+          <div class="w-14 h-14 bg-[#191717] text-white flex items-center justify-center shrink-0 group-hover:bg-[#ff2f11] transition-colors border-2 border-[#191717] shadow-[2px_2px_0px_#191717]">
+            <i data-lucide="arrow-up" class="w-6 h-6 stroke-[2.5]"></i>
           </div>
           <div>
-            <span class="font-stage font-black text-sm text-white uppercase tracking-wide">IMPORT AUDIO</span>
-            <p class="text-xs font-mono text-neutral-400 mt-0.5">Drop .m4a, .mp3, .wav (3h+ supported)</p>
+            <span class="font-stage font-black text-sm text-[#191717] uppercase tracking-wide block">IMPORT AUDIO FILE</span>
+            <p class="text-xs font-mono text-[#191717]/70 mt-0.5">Drop .m4a, .mp3, .wav (3h+ supported)</p>
           </div>
         </div>
 
         <!-- Voice Memo Mic (Theatrical Red Stage Light) -->
-        <div id="micRecordCard" class="bg-[#0B0C0F] border border-white/15 hover:border-rose-500/80 p-6 rounded-xl flex items-center gap-4 cursor-pointer transition group">
-          <div id="micRecordBtn" class="w-14 h-14 rounded-full bg-rose-500/15 border border-rose-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition shadow-lg shadow-rose-500/20">
-            <div id="micInnerDot" class="w-5 h-5 rounded-full bg-rose-500 transition-all"></div>
+        <div id="micRecordCard" class="bg-[#fffdfd] border-2 border-[#191717] hover:bg-[#faf6ed] hover:border-[#ff2f11] p-6 flex items-center gap-4 cursor-pointer transition-all group shadow-[2px_2px_0px_#191717]">
+          <div id="micRecordBtn" class="w-14 h-14 bg-[#ff2f11] border-2 border-[#191717] flex items-center justify-center shrink-0 group-hover:scale-105 transition-all shadow-[2px_2px_0px_#191717]">
+            <div id="micInnerDot" class="w-5 h-5 rounded-full bg-white transition-all"></div>
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span id="micLed" class="w-2 h-2 rounded-full bg-neutral-600"></span>
-              <span id="micLabel" class="font-stage font-black text-sm text-white uppercase tracking-wide">CAPTURE VOICE MEMO</span>
+              <span id="micLed" class="w-2.5 h-2.5 rounded-full bg-[#191717]/40"></span>
+              <span id="micLabel" class="font-stage font-black text-sm text-[#191717] uppercase tracking-wide">CAPTURE VOICE MEMO</span>
             </div>
-            <p id="micSubtext" class="text-xs font-mono text-neutral-400 mt-0.5">Direct microphone input for phones & PC</p>
+            <p id="micSubtext" class="text-xs font-mono text-[#191717]/70 mt-0.5">Direct microphone input for phones & PC</p>
           </div>
         </div>
 
       </div>
 
       <!-- Selected File Notification Banner -->
-      <div id="selectedFileBanner" class="hidden bg-[#0B0C0F] border border-blue-500/40 p-4 rounded-xl flex items-center justify-between gap-3">
+      <div id="selectedFileBanner" class="hidden bg-[#e4fc51] border-2 border-[#191717] p-3.5 flex items-center justify-between gap-3 shadow-[2px_2px_0px_#191717]">
         <div class="flex items-center gap-3 truncate">
-          <span class="backstage-pass text-blue-400 border-blue-500/40">QUEUED</span>
-          <span id="selectedFileName" class="text-xs font-mono text-white truncate">recording.m4a</span>
+          <span class="aya-badge-black text-[10px]">QUEUED FILE</span>
+          <span id="selectedFileName" class="text-xs font-mono font-bold text-[#191717] truncate">recording.m4a</span>
         </div>
-        <button id="clearFileBtn" class="text-neutral-400 hover:text-white p-1">
+        <button id="clearFileBtn" class="text-[#191717] hover:text-[#ff2f11] p-1 font-bold">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
       <!-- Switchboard: Model Size & Speaker Detection -->
-      <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/10">
+      <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t-2 border-[#191717]/15">
         
         <!-- Model Engine Segmented Switch -->
         <div class="flex items-center gap-2.5">
-          <span class="text-xs font-mono font-bold text-neutral-400 uppercase">Engine:</span>
-          <div class="flex rounded-lg bg-black p-1 border border-white/20 font-mono text-xs font-bold">
-            <button class="model-pill px-3 py-1 rounded text-neutral-400 hover:text-white transition" data-model="tiny">TINY (Fast)</button>
-            <button class="model-pill active px-3 py-1 rounded bg-[#2563EB] text-white font-bold transition" data-model="base">BASE (Balanced)</button>
-            <button class="model-pill px-3 py-1 rounded text-neutral-400 hover:text-white transition" data-model="small">SMALL (Studio)</button>
+          <span class="text-xs font-mono font-black text-[#191717] uppercase">Engine:</span>
+          <div class="flex border-2 border-[#191717] bg-[#f1ead8] p-1 gap-1 font-mono text-xs font-bold">
+            <button class="model-pill px-3 py-1 bg-transparent text-[#191717] hover:bg-[#fffdfd] transition" data-model="tiny">TINY (Fast)</button>
+            <button class="model-pill active px-3 py-1 bg-[#ff2f11] text-white font-bold transition shadow-[1px_1px_0px_#191717]" data-model="base">BASE (Balanced)</button>
+            <button class="model-pill px-3 py-1 bg-transparent text-[#191717] hover:bg-[#fffdfd] transition" data-model="small">SMALL (Studio)</button>
           </div>
         </div>
 
         <!-- Speaker Diarization Switch -->
         <div class="flex items-center gap-3">
-          <span class="text-xs font-mono font-bold text-neutral-300 uppercase">SPEAKER DIARIZATION</span>
+          <span class="text-xs font-mono font-black text-[#191717] uppercase">SPEAKER DIARIZATION</span>
           <label class="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" id="diarizationToggle" checked class="sr-only peer">
-            <div class="w-11 h-6 bg-black border border-white/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#2563EB]"></div>
+            <div class="w-12 h-6 bg-[#ded6c1] border-2 border-[#191717] peer-focus:outline-none peer peer-checked:after:translate-x-full peer-checked:after:border-[#191717] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#191717] after:border-2 after:border-[#191717] after:h-4 after:w-5 after:transition-all peer-checked:bg-[#e4fc51] peer-checked:after:bg-[#191717]"></div>
           </label>
         </div>
 
       </div>
 
       <!-- Initialize Button -->
-      <button id="startTranscribeBtn" disabled class="stage-btn-blue w-full py-4 px-6 rounded-xl text-xs uppercase tracking-wider disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+      <button id="startTranscribeBtn" disabled class="aya-btn-red w-full py-4 px-6 text-sm uppercase tracking-wider font-black disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
         <i data-lucide="play" class="w-4 h-4 fill-white"></i>
         <span>INITIALIZE STAGE PIPELINE</span>
       </button>
 
       <!-- Dynamic Progress Banner -->
-      <div id="progressContainer" class="hidden pt-4 space-y-2 border-t border-white/10">
-        <div class="flex items-center justify-between text-xs font-mono">
-          <span id="progressStatusText" class="text-blue-400 font-bold flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+      <div id="progressContainer" class="hidden pt-4 space-y-2 border-t-2 border-[#191717]/15">
+        <div class="flex items-center justify-between text-xs font-mono font-bold">
+          <span id="progressStatusText" class="text-[#ff2f11] flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#ff2f11] animate-ping"></span>
             TRANSCRIPTION UNDERWAY...
           </span>
-          <span id="progressPercent" class="font-bold text-white">0%</span>
+          <span id="progressPercent" class="font-bold text-[#191717]">0%</span>
         </div>
-        <div class="w-full h-1.5 bg-black border border-white/20 rounded-full overflow-hidden">
-          <div id="progressBar" class="h-full bg-blue-500 rounded-full transition-all duration-300 w-0"></div>
+        <div class="w-full h-3 bg-[#e6dfcc] border-2 border-[#191717] overflow-hidden">
+          <div id="progressBar" class="h-full bg-[#ff2f11] transition-all duration-300 w-0"></div>
         </div>
-        <p id="liveTranscriptPreview" class="text-xs font-mono text-neutral-400 truncate italic"></p>
+        <p id="liveTranscriptPreview" class="text-xs font-mono text-[#191717]/70 truncate italic"></p>
       </div>
 
     </section>
 
     <!-- Theatrical Screenplay & WaveSurfer Stage -->
-    <section id="transcriptSection" class="hidden stage-panel rounded-2xl p-6 sm:p-8 space-y-6">
+    <section id="transcriptSection" class="hidden aya-card p-6 sm:p-8 space-y-6">
       
       <!-- Top Title & Controls -->
-      <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/10">
+      <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b-2 border-[#191717]/15">
         <div>
-          <h2 id="currentTitle" class="text-xl sm:text-2xl font-stage font-black text-white tracking-tight uppercase">
+          <h2 id="currentTitle" class="text-2xl sm:text-3xl font-stage font-black text-[#191717] tracking-tight uppercase">
             PLAY SCRIPT // DIALOGUE
           </h2>
-          <div class="flex items-center gap-3 text-xs font-mono text-neutral-400 mt-1">
-            <span id="currentDuration" class="text-blue-400 font-bold">00:00:00</span>
+          <div class="flex items-center gap-3 text-xs font-mono text-[#191717]/70 mt-1 font-semibold">
+            <span id="currentDuration" class="text-[#ff2f11] font-bold">00:00:00</span>
             <span>&bull;</span>
             <span id="segmentCount">0 segments</span>
           </div>
@@ -190,60 +190,89 @@
         <!-- Search, Copy & Export Actions -->
         <div class="flex items-center gap-2.5">
           <div class="relative">
-            <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-2.5 text-neutral-500"></i>
-            <input type="text" id="searchInput" placeholder="Search script..." class="bg-black border border-white/20 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500 w-36 sm:w-48 font-mono">
+            <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#191717]/60"></i>
+            <input type="text" id="searchInput" placeholder="Search script..." class="bg-[#fffdfd] border-2 border-[#191717] pl-8 pr-3 py-1.5 text-xs text-[#191717] placeholder-[#191717]/50 focus:outline-none focus:bg-[#faf6ed] w-36 sm:w-48 font-mono shadow-[2px_2px_0px_#191717]">
           </div>
 
-          <button id="copyTranscriptBtn" class="backstage-pass text-neutral-200 hover:text-white transition py-1.5 flex items-center gap-1.5">
+          <button id="copyTranscriptBtn" class="aya-btn-white py-1.5 px-3 flex items-center gap-1.5 text-xs font-mono">
             <i data-lucide="copy" class="w-3.5 h-3.5"></i>
             <span class="hidden sm:inline">COPY</span>
           </button>
 
           <!-- Export Dropdown -->
           <div class="relative inline-block text-left">
-            <button id="exportMenuBtn" class="stage-btn-blue px-3.5 py-1.5 rounded-lg text-xs uppercase flex items-center gap-1.5">
+            <button id="exportMenuBtn" class="aya-btn-red px-3.5 py-1.5 text-xs uppercase flex items-center gap-1.5">
               <i data-lucide="download" class="w-3.5 h-3.5"></i>
               <span>EXPORT</span>
             </button>
-            <div id="exportDropdown" class="hidden absolute right-0 mt-2 w-52 bg-[#111216] border border-white/20 rounded-xl p-1.5 z-50 text-xs font-mono shadow-2xl">
-              <button class="export-opt w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 flex items-center gap-2 text-white" data-format="md">
-                <span class="backstage-pass text-blue-400 border-blue-500/30 text-[9px]">MD</span> Markdown Notes
+            <div id="exportDropdown" class="hidden absolute right-0 mt-2 w-52 bg-[#fffdfd] border-2 border-[#191717] p-1.5 z-50 text-xs font-mono shadow-[5px_5px_0px_#191717]">
+              <button class="export-opt w-full text-left px-3 py-2 hover:bg-[#e4fc51] font-bold flex items-center gap-2 text-[#191717]" data-format="md">
+                <span class="aya-badge-black text-[9px]">MD</span> Markdown Notes
               </button>
-              <button class="export-opt w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 flex items-center gap-2 text-white" data-format="srt">
-                <span class="backstage-pass text-emerald-400 border-emerald-500/30 text-[9px]">SRT</span> Subtitles
+              <button class="export-opt w-full text-left px-3 py-2 hover:bg-[#e4fc51] font-bold flex items-center gap-2 text-[#191717]" data-format="srt">
+                <span class="aya-badge-yellow text-[9px]">SRT</span> Subtitles
               </button>
-              <button class="export-opt w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 flex items-center gap-2 text-white" data-format="txt">
-                <span class="backstage-pass text-amber-400 border-amber-500/30 text-[9px]">TXT</span> Plain Text
+              <button class="export-opt w-full text-left px-3 py-2 hover:bg-[#e4fc51] font-bold flex items-center gap-2 text-[#191717]" data-format="txt">
+                <span class="aya-badge-white text-[9px]">TXT</span> Plain Text
               </button>
-              <button class="export-opt w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 flex items-center gap-2 text-white" data-format="json">
-                <span class="backstage-pass text-rose-400 border-rose-500/30 text-[9px]">JSON</span> Raw Data
+              <button class="export-opt w-full text-left px-3 py-2 hover:bg-[#e4fc51] font-bold flex items-center gap-2 text-[#191717]" data-format="json">
+                <span class="aya-badge-red text-[9px]">JSON</span> Raw Data
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Real WaveSurfer Waveform Choreography Deck -->
-      <div class="space-y-2">
-        <div class="flex items-center justify-between text-[11px] font-mono text-neutral-400">
-          <span class="flex items-center gap-1.5 text-blue-400 font-bold">
+      <!-- Real WaveSurfer Waveform Choreography Deck (Embedded directly into the workspace) -->
+      <div class="space-y-3 bg-[#faf6ed] border-2 border-[#191717] p-4 shadow-[3px_3px_0px_#191717]">
+        <div class="flex items-center justify-between text-[11px] font-mono text-[#191717] font-bold">
+          <span class="flex items-center gap-1.5 text-[#ff2f11]">
             <i data-lucide="activity" class="w-3.5 h-3.5"></i>
             WAVEFORM CHOREOGRAPHY (CLICK ANYWHERE TO SCRUB)
           </span>
           <span id="waveformTimeDisplay">00:00 / 00:00</span>
         </div>
+        
+        <!-- WaveSurfer Waveform Canvas -->
         <div id="waveformContainer"></div>
+
+        <!-- Embedded Audio Transport Controls (Always visible in context, never blocking inputs!) -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+          <div class="flex items-center gap-2.5">
+            <button id="playPauseBtn" class="aya-btn-red w-10 h-10 flex items-center justify-center shrink-0" title="Play / Pause (Spacebar)">
+              <i data-lucide="play" class="w-4 h-4 ml-0.5 fill-white" id="playIcon"></i>
+            </button>
+            <button id="skipBackBtn" class="aya-btn-white w-9 h-9 flex items-center justify-center" title="Rewind 10s">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            </button>
+            <button id="skipForwardBtn" class="aya-btn-white w-9 h-9 flex items-center justify-center" title="Forward 10s">
+              <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2 font-mono text-xs font-bold bg-[#fffdfd] border-2 border-[#191717] px-3 py-1.5 shadow-[2px_2px_0px_#191717]">
+            <span id="currentTimeDisplay" class="text-[#ff2f11]">00:00</span>
+            <span class="text-[#191717]/40">/</span>
+            <span id="totalTimeDisplay" class="text-[#191717]">00:00</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button id="speedCycleBtn" class="aya-btn-yellow px-3 py-1.5 text-xs font-mono font-black" title="Playback Speed">
+              1.0×
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Screenplay Tabs -->
-      <div class="flex items-center gap-3 border-b border-white/10 pb-3 font-mono text-xs font-bold">
-        <button id="tabTranscriptBtn" class="px-3.5 py-1.5 bg-[#2563EB] text-white border border-blue-400 rounded">
+      <div class="flex items-center gap-2 border-b-2 border-[#191717]/15 pb-3 font-mono text-xs font-black">
+        <button id="tabTranscriptBtn" class="px-4 py-2 bg-[#ff2f11] text-white border-2 border-[#191717] shadow-[2px_2px_0px_#191717] transition">
           01 // THE SCRIPT
         </button>
-        <button id="tabSummaryBtn" class="px-3.5 py-1.5 bg-black text-neutral-400 hover:text-white border border-white/15 rounded transition">
+        <button id="tabSummaryBtn" class="px-4 py-2 bg-[#fffdfd] text-[#191717] hover:bg-[#e4fc51] border-2 border-[#191717] shadow-[2px_2px_0px_#191717] transition">
           02 // STAGE NOTES
         </button>
-        <button id="tabAnalyticsBtn" class="px-3.5 py-1.5 bg-black text-neutral-400 hover:text-white border border-white/15 rounded transition">
+        <button id="tabAnalyticsBtn" class="px-4 py-2 bg-[#fffdfd] text-[#191717] hover:bg-[#e4fc51] border-2 border-[#191717] shadow-[2px_2px_0px_#191717] transition">
           03 // DIALOGUE RADAR
         </button>
       </div>
@@ -257,21 +286,21 @@
 
       <!-- Tab 2: Stage Notes & Commitments -->
       <div id="tabSummaryView" class="hidden space-y-6 max-h-[550px] overflow-y-auto pr-2">
-        <div class="bg-[#0B0C0F] border border-white/15 rounded-xl p-5 space-y-3">
+        <div class="bg-[#fffdfd] border-2 border-[#191717] p-5 space-y-3 shadow-[3px_3px_0px_#191717]">
           <div class="flex items-center gap-2">
-            <span class="backstage-pass text-blue-400 border-blue-500/30">KEY COMMITMENTS</span>
-            <span class="text-xs font-mono text-neutral-400">Action Items & Deadlines</span>
+            <span class="aya-badge-red text-[10px]">KEY COMMITMENTS</span>
+            <span class="text-xs font-mono font-bold text-[#191717]/70">Action Items & Deadlines</span>
           </div>
-          <ul id="actionItemsList" class="space-y-2.5 text-sm font-body text-neutral-200">
+          <ul id="actionItemsList" class="space-y-2.5 text-sm font-body text-[#191717]">
             <!-- Populated by JavaScript -->
           </ul>
         </div>
-        <div class="bg-[#0B0C0F] border border-white/15 rounded-xl p-5 space-y-3">
+        <div class="bg-[#fffdfd] border-2 border-[#191717] p-5 space-y-3 shadow-[3px_3px_0px_#191717]">
           <div class="flex items-center gap-2">
-            <span class="backstage-pass text-emerald-400 border-emerald-500/30">SCENE BREAKDOWN</span>
-            <span class="text-xs font-mono text-neutral-400">Chronological Outline</span>
+            <span class="aya-badge-yellow text-[10px]">SCENE BREAKDOWN</span>
+            <span class="text-xs font-mono font-bold text-[#191717]/70">Chronological Outline</span>
           </div>
-          <div id="outlineList" class="space-y-3 text-sm font-body text-neutral-200">
+          <div id="outlineList" class="space-y-3 text-sm font-body text-[#191717]">
             <!-- Populated by JavaScript -->
           </div>
         </div>
@@ -279,8 +308,8 @@
 
       <!-- Tab 3: Dialogue Radar -->
       <div id="tabAnalyticsView" class="hidden space-y-4 max-h-[550px] overflow-y-auto pr-2">
-        <div class="bg-[#0B0C0F] border border-white/15 rounded-xl p-5 space-y-4">
-          <span class="backstage-pass text-purple-400 border-purple-500/30">SPEAKER TALK-TIME RADAR</span>
+        <div class="bg-[#fffdfd] border-2 border-[#191717] p-5 space-y-4 shadow-[3px_3px_0px_#191717]">
+          <span class="aya-badge-black text-[10px]">SPEAKER TALK-TIME RADAR</span>
           <div id="speakerStatsFeed" class="space-y-4 pt-2">
             <!-- Populated by JavaScript -->
           </div>
@@ -291,64 +320,63 @@
 
   </main>
 
-  <!-- Floating Stage Console Dock (Bottom Bar) -->
-  <div id="audioDock" class="fixed bottom-4 left-4 right-4 max-w-2xl mx-auto stage-console rounded-2xl p-3.5 shadow-2xl z-50 flex items-center justify-between gap-4 transition-all">
-    
+  <!-- Sticky Bottom Audio Bar (HIDDEN by default, only appears when user scrolls down past the embedded player) -->
+  <div id="audioDock" class="hidden fixed bottom-4 left-4 right-4 max-w-2xl mx-auto aya-floating-bar p-3.5 z-50 flex items-center justify-between gap-4 transition-all">
     <!-- Left: Transport Controls -->
-    <div class="flex items-center gap-3">
-      <button id="playPauseBtn" class="w-11 h-11 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white flex items-center justify-center shrink-0 shadow-lg shadow-blue-600/30 transition">
-        <i data-lucide="play" class="w-5 h-5 ml-0.5 fill-white" id="playIcon"></i>
+    <div class="flex items-center gap-2.5">
+      <button id="dockPlayPauseBtn" class="aya-btn-red w-10 h-10 flex items-center justify-center shrink-0">
+        <i data-lucide="play" class="w-4 h-4 ml-0.5 fill-white" id="dockPlayIcon"></i>
       </button>
 
-      <button id="skipBackBtn" class="text-neutral-400 hover:text-white transition" title="Rewind 10s">
-        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+      <button id="dockSkipBackBtn" class="aya-btn-white w-9 h-9 flex items-center justify-center" title="Rewind 10s">
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
       </button>
-      <button id="skipForwardBtn" class="text-neutral-400 hover:text-white transition" title="Forward 10s">
-        <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+      <button id="dockSkipForwardBtn" class="aya-btn-white w-9 h-9 flex items-center justify-center" title="Forward 10s">
+        <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
       </button>
     </div>
 
     <!-- Center: Time display -->
-    <div class="flex items-center gap-2 font-mono text-xs">
-      <span id="currentTimeDisplay" class="text-blue-400 font-bold">00:00</span>
-      <span class="text-neutral-500">/</span>
-      <span id="totalTimeDisplay" class="text-neutral-400">00:00</span>
+    <div class="flex items-center gap-2 font-mono text-xs font-bold">
+      <span id="dockCurrentTimeDisplay" class="text-[#ff2f11]">00:00</span>
+      <span class="text-[#191717]/40">/</span>
+      <span id="dockTotalTimeDisplay" class="text-[#191717]">00:00</span>
     </div>
 
     <!-- Right: Speed Selector -->
     <div class="flex items-center gap-2">
-      <button id="speedCycleBtn" class="bg-black border border-white/20 hover:border-blue-400 px-3 py-1.5 rounded-lg text-white font-mono text-xs font-bold transition">
+      <button id="dockSpeedCycleBtn" class="aya-btn-yellow px-3 py-1.5 text-xs font-mono font-black">
         1.0×
       </button>
     </div>
   </div>
 
   <!-- Vault Drawer (Past Library) -->
-  <div id="historyDrawer" class="fixed inset-y-0 right-0 w-80 bg-[#0B0C0F] border-l border-white/15 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 p-6 flex flex-col font-mono">
-    <div class="flex items-center justify-between pb-4 border-b border-white/10 mb-4">
-      <h3 class="font-stage font-black text-sm text-white uppercase flex items-center gap-2">
-        <i data-lucide="archive" class="w-4 h-4 text-blue-400"></i>
+  <div id="historyDrawer" class="fixed inset-y-0 right-0 w-84 max-w-[85vw] bg-[#f1ead8] border-l-2 border-[#191717] shadow-[-6px_0px_0px_#191717] z-50 transform translate-x-full transition-transform duration-300 p-6 flex flex-col font-mono">
+    <div class="flex items-center justify-between pb-4 border-b-2 border-[#191717] mb-4">
+      <h3 class="font-stage font-black text-sm text-[#191717] uppercase flex items-center gap-2">
+        <i data-lucide="archive" class="w-4 h-4 text-[#ff2f11]"></i>
         SESSION VAULT
       </h3>
-      <button id="closeDrawerBtn" class="p-1 rounded text-neutral-400 hover:text-white">
+      <button id="closeDrawerBtn" class="aya-btn-white p-1">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
     </div>
-    <div id="historyList" class="flex-1 overflow-y-auto space-y-2.5">
+    <div id="historyList" class="flex-1 overflow-y-auto space-y-2.5 pr-1">
       <!-- Injected by JavaScript -->
     </div>
   </div>
 
   <!-- Rename Character Modal -->
-  <div id="renameSpeakerModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 font-mono">
-    <div class="bg-[#111216] border border-white/20 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
-      <span class="backstage-pass text-blue-400 border-blue-500/30">STAGE CASTING</span>
-      <h3 class="font-stage font-black text-sm text-white uppercase">RENAME PERFORMER IDENTITY</h3>
-      <p class="text-xs text-neutral-400">Updates this performer across the entire script dialogue.</p>
-      <input type="text" id="speakerRenameInput" class="w-full bg-black border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 font-mono" placeholder="e.g. Alex, Sarah, Narrator">
+  <div id="renameSpeakerModal" class="hidden fixed inset-0 bg-[#191717]/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 font-mono">
+    <div class="bg-[#fffdfd] border-2 border-[#191717] max-w-sm w-full p-6 shadow-[8px_8px_0px_#191717] space-y-4">
+      <span class="aya-badge-red text-[10px]">STAGE CASTING</span>
+      <h3 class="font-stage font-black text-base text-[#191717] uppercase">RENAME PERFORMER IDENTITY</h3>
+      <p class="text-xs text-[#191717]/70 font-sans">Updates this performer identity across the entire script dialogue.</p>
+      <input type="text" id="speakerRenameInput" class="w-full bg-[#faf6ed] border-2 border-[#191717] px-4 py-2.5 text-sm text-[#191717] focus:outline-none focus:bg-white font-mono shadow-[2px_2px_0px_#191717]" placeholder="e.g. Alex, Sarah, Narrator">
       <div class="flex justify-end gap-2.5 pt-2">
-        <button id="cancelRenameBtn" class="px-4 py-2 rounded-lg text-xs font-bold text-neutral-400 hover:text-white">Cancel</button>
-        <button id="saveRenameBtn" class="stage-btn-blue px-4 py-2 rounded-lg text-xs uppercase font-bold">Save Performer</button>
+        <button id="cancelRenameBtn" class="aya-btn-white px-4 py-2 text-xs font-bold">Cancel</button>
+        <button id="saveRenameBtn" class="aya-btn-red px-4 py-2 text-xs uppercase font-black">Save Performer</button>
       </div>
     </div>
   </div>
