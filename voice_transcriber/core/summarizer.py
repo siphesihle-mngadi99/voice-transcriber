@@ -127,11 +127,12 @@ Your task is to analyze the provided conversation/lecture transcript and generat
 IMPORTANT RULES:
 1. Do NOT use emojis anywhere in your response. Keep the tone professional, objective, and clear.
 2. Output MUST strictly be valid JSON without conversational preamble or markdown backticks around the json.
-3. Extract precise ideas, feedback, decisions, suggestions, and action items.
+3. Structure the "overview" into 2-3 distinct, well-separated narrative paragraphs using double newlines (\\n\\n). Paragraph 1 must state the primary thesis and executive consensus. Paragraph 2 must detail key proposals and debates. Paragraph 3 must capture conclusions and next milestones.
+4. Extract precise ideas, feedback, decisions, suggestions, and action items.
 
 JSON SCHEMA:
 {
-  "overview": "Comprehensive 2-3 paragraph narrative summary of the meeting or lecture. Capture key context, core discussions, and overall conclusions.",
+  "overview": "Multi-paragraph strategic narrative separated by double newlines (\\n\\n). Paragraph 1: Primary takeaway & executive consensus. Paragraph 2: Strategic discussions & proposals. Paragraph 3: Decisions & outcomes.",
   "feedback": [
     {
       "point": "Concise summary of feedback, critique, consensus, or decision made",

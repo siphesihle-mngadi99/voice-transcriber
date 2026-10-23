@@ -304,3 +304,15 @@ body {
   box-shadow: 4px 4px 0px 0px var(--aya-red) !important;
 }
 
+/* Executive Brief Interactive Audio Jump Pills */
+.jump-time-btn {
+  user-select: none;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.jump-time-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px 0px var(--aya-black) !important;
+}
+
+

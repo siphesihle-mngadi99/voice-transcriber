@@ -137,10 +137,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const briefLoadingContainer = document.getElementById("briefLoadingContainer");
   const briefContentContainer = document.getElementById("briefContentContainer");
   const triggerGenerateBtn = document.getElementById("triggerGenerateBtn");
-  const briefOverviewText = document.getElementById("briefOverviewText");
+  const briefMetricBar = document.getElementById("briefMetricBar");
+  const briefLeadBox = document.getElementById("briefLeadBox");
+  const briefLeadText = document.getElementById("briefLeadText");
+  const briefOverviewNarrative = document.getElementById("briefOverviewNarrative");
+  const feedbackCountBadge = document.getElementById("feedbackCountBadge");
   const briefFeedbackList = document.getElementById("briefFeedbackList");
+  const ideasCountBadge = document.getElementById("ideasCountBadge");
   const briefIdeasList = document.getElementById("briefIdeasList");
+  const actionItemsCountBadge = document.getElementById("actionItemsCountBadge");
   const briefActionItemsList = document.getElementById("briefActionItemsList");
+  const chaptersCountBadge = document.getElementById("chaptersCountBadge");
   const briefChaptersList = document.getElementById("briefChaptersList");
 
   // LLM Config Modal Elements
@@ -694,121 +701,248 @@ document.addEventListener("DOMContentLoaded", () => {
     briefLoadingContainer.classList.add("hidden");
     briefContentContainer.classList.remove("hidden");
 
-    briefProviderName.textContent = summary.provider_name || "AI BRIEF";
-    briefStatusTag.textContent = "SYNTHESIZED";
+    if (briefProviderName) briefProviderName.textContent = summary.provider_name || "AI BRIEF";
+    if (briefStatusTag) briefStatusTag.textContent = "SYNTHESIZED";
 
-    // 1. Overview Narrative
-    briefOverviewText.textContent = summary.overview || "No overview narrative available.";
-
-    // 2. Key Takeaways & Feedback
-    briefFeedbackList.innerHTML = "";
     const feedbackItems = summary.feedback || summary.takeaways || [];
-    if (feedbackItems.length === 0) {
-      briefFeedbackList.innerHTML = `<li class="text-xs font-mono text-[#191717]/60 italic p-3 bg-[#faf6ed] border border-[#191717]/20">NO SPECIFIC FEEDBACK OR DECISIONS RECORDED.</li>`;
-    } else {
-      feedbackItems.forEach((item) => {
-        const point = item.point || item.text || (typeof item === "string" ? item : JSON.stringify(item));
-        const ctx = item.context || item.speaker || "";
-        const li = document.createElement("li");
-        li.className = "p-3 bg-[#faf6ed] border-2 border-[#191717] shadow-[2px_2px_0px_#191717] space-y-1";
-        li.innerHTML = `
-          <div class="font-bold text-xs sm:text-sm text-[#191717] leading-snug">${escapeHtml(point)}</div>
-          ${ctx ? `<div class="text-[11px] font-mono text-[#191717]/70 font-semibold">${escapeHtml(ctx)}</div>` : ""}
-        `;
-        briefFeedbackList.appendChild(li);
-      });
-    }
-
-    // 3. Ideas & Brainstormed Concepts
-    briefIdeasList.innerHTML = "";
     const ideas = summary.ideas || [];
-    if (ideas.length === 0) {
-      briefIdeasList.innerHTML = `<div class="text-xs font-mono text-[#191717]/60 italic p-3 bg-[#faf6ed] border border-[#191717]/20 col-span-2">NO NEW CONCEPTS OR PROPOSALS RECORDED.</div>`;
-    } else {
-      ideas.forEach((idea) => {
-        const title = idea.title || idea.name || "Proposed Concept";
-        const desc = idea.description || idea.desc || (typeof idea === "string" ? idea : "");
-        const card = document.createElement("div");
-        card.className = "p-3.5 bg-[#faf6ed] border-2 border-[#191717] space-y-1.5 shadow-[2px_2px_0px_#191717]";
-        card.innerHTML = `
-          <div class="flex items-center gap-1.5 text-xs font-stage font-black text-[#ff2f11] uppercase tracking-wide">
-            <i data-lucide="lightbulb" class="w-3.5 h-3.5 shrink-0"></i>
-            <span class="truncate">${escapeHtml(title)}</span>
-          </div>
-          <p class="text-xs text-[#191717] leading-relaxed font-medium">${escapeHtml(desc)}</p>
-        `;
-        briefIdeasList.appendChild(card);
-      });
+    const actions = summary.action_items || [];
+    const chapters = summary.chapters || [];
+
+    // --- Dynamic Metric Ribbon ---
+    if (briefMetricBar) {
+      const durationStr = currentDuration ? currentDuration.textContent : "";
+      briefMetricBar.innerHTML = `
+        ${durationStr ? `<span class="aya-badge-black text-[10px] font-mono font-bold flex items-center gap-1.5 px-2 py-0.5"><i data-lucide="clock" class="w-3 h-3 text-[#ff2f11]"></i>${escapeHtml(durationStr)}</span>` : ""}
+        <span class="aya-badge-red text-[10px] font-mono font-black px-2 py-0.5">${feedbackItems.length} TAKEAWAYS</span>
+        <span class="aya-badge-yellow text-[10px] font-mono font-black px-2 py-0.5">${ideas.length} PROPOSALS</span>
+        <span class="aya-badge-black text-[10px] font-mono font-black px-2 py-0.5 border border-[#191717]">${actions.length} TASKS</span>
+        <span class="aya-badge-white text-[10px] font-mono font-black px-2 py-0.5 border border-[#191717]">${chapters.length} CHAPTERS</span>
+      `;
     }
 
-    // 4. Action Items & Next Steps (With Clickable Audio Timestamp Jump)
-    briefActionItemsList.innerHTML = "";
-    const actions = summary.action_items || [];
-    if (actions.length === 0) {
-      briefActionItemsList.innerHTML = `<li class="text-xs font-mono text-[#191717]/60 italic p-3 bg-[#faf6ed] border border-[#191717]/20">NO ACTION ITEMS DETECTED.</li>`;
-    } else {
-      actions.forEach((act) => {
-        const task = act.task || act.description || (typeof act === "string" ? act : "");
-        const owner = act.owner || act.assignee || "Unassigned";
-        const ts = act.timestamp || "";
-        const li = document.createElement("li");
-        li.className = "p-3 bg-[#faf6ed] border-2 border-[#191717] flex items-start justify-between gap-2.5 shadow-[2px_2px_0px_#191717]";
+    // --- 1. Executive Overview Breakdown ---
+    const rawOverview = (summary.overview || "").trim();
+    if (briefLeadText && briefOverviewNarrative) {
+      if (!rawOverview) {
+        if (briefLeadBox) briefLeadBox.classList.add("hidden");
+        briefOverviewNarrative.innerHTML = `<p class="italic text-[#191717]/60 font-mono text-xs">NO OVERVIEW NARRATIVE AVAILABLE.</p>`;
+      } else {
+        if (briefLeadBox) briefLeadBox.classList.remove("hidden");
 
-        li.innerHTML = `
-          <div class="flex items-start gap-2.5 flex-1 min-w-0">
-            <i data-lucide="check-square" class="w-4 h-4 text-[#ff2f11] mt-0.5 shrink-0"></i>
-            <div class="min-w-0">
-              <span class="text-xs sm:text-sm font-body font-bold text-[#191717] leading-snug block">${escapeHtml(task)}</span>
-              <span class="text-[10px] font-mono text-[#191717]/60 font-semibold block mt-0.5">Assigned: ${escapeHtml(owner)}</span>
+        // Split paragraphs or intelligent sentence breakdown
+        let paragraphs = rawOverview.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+        let lead = "";
+        let bodyParagraphs = [];
+
+        if (paragraphs.length >= 2) {
+          lead = paragraphs[0];
+          bodyParagraphs = paragraphs.slice(1);
+        } else {
+          // Single large paragraph: extract lead sentence(s) for the hero consensus box
+          const sentenceMatches = rawOverview.match(/[^.!?]+[.!?]+(\s+|$)/g);
+          if (sentenceMatches && sentenceMatches.length >= 3) {
+            lead = sentenceMatches.slice(0, 2).join(" ").trim();
+            const rest = sentenceMatches.slice(2).join(" ").trim();
+            // Split rest into two balanced narrative paragraphs if long
+            const restSentences = rest.match(/[^.!?]+[.!?]+(\s+|$)/g) || [rest];
+            if (restSentences.length >= 3) {
+              const mid = Math.ceil(restSentences.length / 2);
+              bodyParagraphs = [
+                restSentences.slice(0, mid).join(" ").trim(),
+                restSentences.slice(mid).join(" ").trim()
+              ];
+            } else {
+              bodyParagraphs = [rest];
+            }
+          } else {
+            lead = rawOverview;
+            bodyParagraphs = [];
+          }
+        }
+
+        briefLeadText.textContent = lead;
+
+        briefOverviewNarrative.innerHTML = "";
+        if (bodyParagraphs.length === 0) {
+          const p = document.createElement("p");
+          p.className = "text-xs font-mono text-[#191717]/60 italic";
+          p.textContent = "Full strategic synthesis captured in the consensus box above.";
+          briefOverviewNarrative.appendChild(p);
+        } else {
+          bodyParagraphs.forEach((para) => {
+            const p = document.createElement("p");
+            p.className = "text-[#191717] leading-relaxed sm:leading-loose text-sm sm:text-base font-body bg-white/70 p-4 border border-[#191717]/20 shadow-[2px_2px_0px_#191717]/10";
+            p.textContent = para;
+            briefOverviewNarrative.appendChild(p);
+          });
+        }
+      }
+    }
+
+    // --- 2. Key Takeaways & Feedback ---
+    if (feedbackCountBadge) feedbackCountBadge.textContent = `${feedbackItems.length} ITEMS`;
+    if (briefFeedbackList) {
+      briefFeedbackList.innerHTML = "";
+      if (feedbackItems.length === 0) {
+        briefFeedbackList.innerHTML = `<div class="text-xs font-mono text-[#191717]/60 italic p-4 bg-white border border-[#191717]/20">NO SPECIFIC FEEDBACK OR CRITIQUE RECORDED.</div>`;
+      } else {
+        feedbackItems.forEach((item, idx) => {
+          const point = item.point || item.text || (typeof item === "string" ? item : JSON.stringify(item));
+          const ctx = item.context || item.speaker || "";
+          
+          const tsMatch = ctx.match(/\b\d{1,2}:\d{2}\b/);
+          const ts = tsMatch ? tsMatch[0] : "";
+
+          const card = document.createElement("div");
+          card.className = "p-4 sm:p-5 bg-white border-2 border-[#191717] border-l-[6px] border-l-[#ff2f11] shadow-[3px_3px_0px_#191717] flex flex-col sm:flex-row sm:items-start justify-between gap-3.5 hover:shadow-[5px_5px_0px_#191717] transition";
+          
+          card.innerHTML = `
+            <div class="flex items-start gap-3 flex-1 min-w-0">
+              <span class="aya-badge-black text-[10px] font-mono font-black shrink-0 mt-0.5 px-2 py-0.5">
+                ${String(idx + 1).padStart(2, '0')}
+              </span>
+              <div class="space-y-1.5 flex-1 min-w-0">
+                <p class="font-stage font-bold text-sm sm:text-base text-[#191717] leading-snug">${escapeHtml(point)}</p>
+                ${ctx ? `<div class="flex items-center gap-1.5 text-xs font-mono text-[#191717]/70 font-semibold pt-0.5"><i data-lucide="user" class="w-3.5 h-3.5 text-[#ff2f11] shrink-0"></i><span>${escapeHtml(ctx)}</span></div>` : ""}
+              </div>
             </div>
-          </div>
-          ${ts ? `<button class="jump-time-btn aya-btn-white py-0.5 px-2 text-[10px] font-mono font-bold text-[#ff2f11] hover:bg-[#ff2f11] hover:text-white transition shrink-0" data-time="${escapeHtml(ts)}" title="Play from this moment">[${escapeHtml(ts)}]</button>` : ""}
-        `;
+            ${ts ? `<button class="jump-time-btn aya-btn-yellow py-1 px-2.5 text-xs font-mono font-black flex items-center gap-1 shrink-0 self-start sm:self-center shadow-[2px_2px_0px_#191717]" data-time="${escapeHtml(ts)}" title="Play audio from ${escapeHtml(ts)}"><i data-lucide="play" class="w-3 h-3 fill-black"></i><span>[${escapeHtml(ts)}]</span></button>` : ""}
+          `;
 
-        if (ts) {
-          const btn = li.querySelector(".jump-time-btn");
-          btn.addEventListener("click", () => {
-            const sec = parseTimeStringToSeconds(ts);
+          if (ts) {
+            const btn = card.querySelector(".jump-time-btn");
+            if (btn) {
+              btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const sec = parseTimeStringToSeconds(ts);
+                if (wavesurfer) {
+                  wavesurfer.setTime(sec);
+                  wavesurfer.play();
+                  setPlayState(true);
+                }
+              });
+            }
+          }
+
+          briefFeedbackList.appendChild(card);
+        });
+      }
+    }
+
+    // --- 3. Ideas & Brainstormed Concepts ---
+    if (ideasCountBadge) ideasCountBadge.textContent = `${ideas.length} PROPOSALS`;
+    if (briefIdeasList) {
+      briefIdeasList.innerHTML = "";
+      if (ideas.length === 0) {
+        briefIdeasList.innerHTML = `<div class="text-xs font-mono text-[#191717]/60 italic p-4 bg-white border border-[#191717]/20 col-span-2">NO NEW CONCEPTS OR PROPOSALS RECORDED.</div>`;
+      } else {
+        ideas.forEach((idea, idx) => {
+          const title = idea.title || idea.name || "Proposed Concept";
+          const desc = idea.description || idea.desc || (typeof idea === "string" ? idea : "");
+          const card = document.createElement("div");
+          card.className = "p-5 bg-white border-2 border-[#191717] shadow-[3px_3px_0px_#191717] flex flex-col justify-between space-y-3 hover:translate-y-[-2px] hover:shadow-[5px_5px_0px_#191717] transition";
+          card.innerHTML = `
+            <div class="space-y-2">
+              <div class="flex items-center justify-between gap-2 border-b border-[#191717]/10 pb-2">
+                <span class="aya-badge-yellow text-[10px] font-mono font-black uppercase px-2 py-0.5">PROPOSAL ${String(idx + 1).padStart(2, '0')}</span>
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#ff2f11]"></i>
+              </div>
+              <h4 class="font-stage font-black text-sm sm:text-base text-[#191717] uppercase tracking-tight">${escapeHtml(title)}</h4>
+              <p class="text-xs sm:text-sm text-[#191717]/85 font-body leading-relaxed">${escapeHtml(desc)}</p>
+            </div>
+          `;
+          briefIdeasList.appendChild(card);
+        });
+      }
+    }
+
+    // --- 4. Action Items & Next Steps ---
+    if (actionItemsCountBadge) actionItemsCountBadge.textContent = `${actions.length} TASKS`;
+    if (briefActionItemsList) {
+      briefActionItemsList.innerHTML = "";
+      if (actions.length === 0) {
+        briefActionItemsList.innerHTML = `<div class="text-xs font-mono text-[#191717]/60 italic p-4 bg-white border border-[#191717]/20">NO ACTION ITEMS DETECTED.</div>`;
+      } else {
+        actions.forEach((act) => {
+          const task = act.task || act.description || (typeof act === "string" ? act : "");
+          const owner = act.owner || act.assignee || "Unassigned";
+          const ts = act.timestamp || "";
+          const item = document.createElement("div");
+          item.className = "p-4 sm:p-5 bg-white border-2 border-[#191717] shadow-[3px_3px_0px_#191717] flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-[#ff2f11] hover:shadow-[5px_5px_0px_#191717] transition";
+
+          item.innerHTML = `
+            <div class="flex items-start gap-3.5 flex-1 min-w-0">
+              <div class="w-6 h-6 bg-[#faf6ed] border-2 border-[#191717] flex items-center justify-center shrink-0 mt-0.5 text-[#ff2f11]">
+                <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
+              </div>
+              <div class="space-y-1.5 flex-1 min-w-0">
+                <span class="text-sm sm:text-base font-stage font-bold text-[#191717] leading-snug block">${escapeHtml(task)}</span>
+                <div class="flex flex-wrap items-center gap-2 text-xs font-mono">
+                  <span class="aya-badge-black text-[10px] font-bold uppercase px-2 py-0.5">OWNER: ${escapeHtml(owner)}</span>
+                </div>
+              </div>
+            </div>
+            ${ts ? `<button class="jump-time-btn aya-btn-red py-1.5 px-3 text-xs font-mono font-black flex items-center gap-1.5 shrink-0 self-start sm:self-auto shadow-[2px_2px_0px_#191717]" data-time="${escapeHtml(ts)}" title="Play audio from ${escapeHtml(ts)}"><i data-lucide="play" class="w-3 h-3 fill-white"></i><span>[${escapeHtml(ts)}]</span></button>` : ""}
+          `;
+
+          if (ts) {
+            const btn = item.querySelector(".jump-time-btn");
+            if (btn) {
+              btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const sec = parseTimeStringToSeconds(ts);
+                if (wavesurfer) {
+                  wavesurfer.setTime(sec);
+                  wavesurfer.play();
+                  setPlayState(true);
+                }
+              });
+            }
+          }
+
+          briefActionItemsList.appendChild(item);
+        });
+      }
+    }
+
+    // --- 5. Discussion Chapters & Timeline ---
+    if (chaptersCountBadge) chaptersCountBadge.textContent = `${chapters.length} CHAPTERS`;
+    if (briefChaptersList) {
+      briefChaptersList.innerHTML = "";
+      if (chapters.length === 0) {
+        briefChaptersList.innerHTML = `<div class="text-xs font-mono text-[#191717]/60 italic p-4 bg-white border border-[#191717]/20">NO CHAPTER MARKERS DETECTED.</div>`;
+      } else {
+        chapters.forEach((ch) => {
+          const title = ch.title || "Chapter";
+          const sum = ch.summary || "";
+          const startSec = ch.start_time || 0;
+          const row = document.createElement("div");
+          row.className = "p-3.5 sm:p-4 bg-white border-2 border-[#191717] flex items-center justify-between gap-3 shadow-[2px_2px_0px_#191717] cursor-pointer hover:bg-[#e4fc51] hover:border-[#191717] transition group";
+          row.innerHTML = `
+            <div class="min-w-0 flex-1 space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="font-stage font-black text-xs sm:text-sm text-[#191717] uppercase group-hover:text-black">${escapeHtml(title)}</span>
+              </div>
+              ${sum ? `<p class="text-xs font-body text-[#191717]/80 line-clamp-2">${escapeHtml(sum)}</p>` : ""}
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="aya-badge-red text-[11px] font-mono font-bold px-2 py-0.5">${formatTime(startSec)}</span>
+              <div class="w-7 h-7 bg-[#191717] text-white flex items-center justify-center group-hover:bg-[#ff2f11] transition">
+                <i data-lucide="play" class="w-3 h-3 fill-current ml-0.5"></i>
+              </div>
+            </div>
+          `;
+          row.addEventListener("click", () => {
             if (wavesurfer) {
-              wavesurfer.setTime(sec);
+              wavesurfer.setTime(startSec);
               wavesurfer.play();
               setPlayState(true);
             }
           });
-        }
-
-        briefActionItemsList.appendChild(li);
-      });
-    }
-
-    // 5. Discussion Chapters
-    briefChaptersList.innerHTML = "";
-    const chapters = summary.chapters || [];
-    if (chapters.length === 0) {
-      briefChaptersList.innerHTML = `<div class="text-xs font-mono text-[#191717]/60 italic p-3 bg-[#faf6ed] border border-[#191717]/20">NO CHAPTER MARKERS.</div>`;
-    } else {
-      chapters.forEach((ch) => {
-        const title = ch.title || "Chapter";
-        const sum = ch.summary || "";
-        const startSec = ch.start_time || 0;
-        const row = document.createElement("div");
-        row.className = "p-2.5 bg-[#faf6ed] border-2 border-[#191717] flex items-start justify-between gap-2 shadow-[2px_2px_0px_#191717] cursor-pointer hover:bg-[#e4fc51] transition";
-        row.innerHTML = `
-          <div class="min-w-0 flex-1">
-            <span class="font-stage font-black text-xs text-[#191717] uppercase block">${escapeHtml(title)}</span>
-            <p class="text-[11px] font-body text-[#191717]/80 mt-0.5">${escapeHtml(sum)}</p>
-          </div>
-          <span class="aya-badge-red text-[9px] shrink-0 font-mono">${formatTime(startSec)}</span>
-        `;
-        row.addEventListener("click", () => {
-          if (wavesurfer) {
-            wavesurfer.setTime(startSec);
-            wavesurfer.play();
-            setPlayState(true);
-          }
+          briefChaptersList.appendChild(row);
         });
-        briefChaptersList.appendChild(row);
-      });
+      }
     }
 
     if (window.lucide) lucide.createIcons();
