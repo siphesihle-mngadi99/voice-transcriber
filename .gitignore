@@ -3,6 +3,8 @@
 venv/
 ENV/
 env/
+.env
+.env.*
 
 # Byte-compiled / optimized files
 __pycache__/
@@ -24,6 +26,8 @@ data/exports/
 # Local database & cache
 data/*.db
 data/*.sqlite
+data/llm_config.json
+data/*.txt
 .cache/
 models/
 

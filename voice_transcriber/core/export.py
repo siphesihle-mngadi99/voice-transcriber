@@ -32,13 +32,13 @@ def format_timestamp_vtt(seconds: float) -> str:
 
 
 def export_markdown(recording: Dict[str, Any], segments: List[Dict[str, Any]]) -> str:
-    """Generates structured Markdown with executive meeting notes layout."""
+    """Generates structured Markdown with executive meeting notes and dialogue."""
     title = recording.get("title") or recording.get("filename", "Audio Recording")
     duration = format_timestamp_hms(recording.get("duration", 0.0))
-    created_at = recording.get("created_at", "")[:10]
+    created_at = str(recording.get("created_at", ""))[:10]
 
     lines = [
-        f"# 🎙️ {title}",
+        f"# {title}",
         "",
         f"- **Date:** {created_at}",
         f"- **Duration:** {duration}",
@@ -47,9 +47,54 @@ def export_markdown(recording: Dict[str, Any], segments: List[Dict[str, Any]]) -
         "",
         "---",
         "",
-        "## 📝 Transcript",
-        "",
     ]
+
+    # Prepend Executive Brief if available
+    summary_raw = recording.get("summary_json")
+    if summary_raw:
+        try:
+            brief = json.loads(summary_raw)
+            if brief.get("overview"):
+                lines.extend(["## Executive Overview", "", brief["overview"], "", "---", ""])
+
+            if brief.get("takeaways") or brief.get("feedback"):
+                items = brief.get("feedback") or brief.get("takeaways") or []
+                lines.extend(["## Key Takeaways & Feedback", ""])
+                for item in items:
+                    point = item.get("point") if isinstance(item, dict) else str(item)
+                    ctx = f" ({item.get('context')})" if isinstance(item, dict) and item.get("context") else ""
+                    lines.append(f"- **{point}**{ctx}")
+                lines.extend(["", "---", ""])
+
+            if brief.get("ideas"):
+                lines.extend(["## Ideas & Brainstormed Concepts", ""])
+                for idea in brief["ideas"]:
+                    t = idea.get("title", "Idea") if isinstance(idea, dict) else "Idea"
+                    d = idea.get("description", str(idea)) if isinstance(idea, dict) else str(idea)
+                    lines.append(f"### {t}\n{d}\n")
+                lines.extend(["---", ""])
+
+            if brief.get("action_items"):
+                lines.extend(["## Action Items & Next Steps", ""])
+                for act in brief["action_items"]:
+                    task = act.get("task", "") if isinstance(act, dict) else str(act)
+                    owner = act.get("owner", "Unassigned") if isinstance(act, dict) else "Unassigned"
+                    ts = f" `[{act.get('timestamp')}]`" if isinstance(act, dict) and act.get("timestamp") else ""
+                    lines.append(f"- [ ] **{task}** — *{owner}*{ts}")
+                lines.extend(["", "---", ""])
+
+            if brief.get("chapters"):
+                lines.extend(["## Discussion Chapters", ""])
+                for ch in brief["chapters"]:
+                    ch_title = ch.get("title", "")
+                    ch_sec = ch.get("start_time", 0)
+                    ch_sum = ch.get("summary", "")
+                    lines.append(f"- `[{format_timestamp_hms(ch_sec)}]` **{ch_title}**: {ch_sum}")
+                lines.extend(["", "---", ""])
+        except Exception:
+            pass
+
+    lines.extend(["## Verbatim Transcript", ""])
 
     current_speaker = None
     for seg in segments:

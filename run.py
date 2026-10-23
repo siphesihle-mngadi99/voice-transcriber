@@ -84,15 +84,15 @@ def start_tunnel_thread(port: int, on_url_found):
 def print_banner(public_url=None):
     local_ip = get_local_ip()
     print("\n" + "=" * 68)
-    print("🎙️  VoiceScribe: Local-First Audio Transcriber & Note Synthesizer")
+    print(" [VoiceScribe] Audio Transcriber & Note Synthesizer")
     print("=" * 68)
-    print(f" ▸ Laptop (Local):      http://localhost:{PORT}")
-    print(f" ▸ Home/Office Wi-Fi:   http://{local_ip}:{PORT}")
+    print(f" > Laptop (Local):      http://localhost:{PORT}")
+    print(f" > Home/Office Wi-Fi:   http://{local_ip}:{PORT}")
     if public_url:
-        print(f" ▸ Global Public URL:   {public_url}  <-- [SHARE THIS!]")
+        print(f" > Global Public URL:   {public_url}  <-- [SHARE THIS!]")
         print("   (Works anywhere on 4G/5G mobile phones without Wi-Fi)")
     else:
-        print(" 💡 To generate a global public link for friends:")
+        print(" [!] To generate a global public link for mobile / remote access:")
         print("    Run: python run.py --share")
     print("=" * 68)
     print(" Press Ctrl+C to stop the server.\n")

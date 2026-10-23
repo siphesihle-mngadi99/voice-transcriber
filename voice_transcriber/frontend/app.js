@@ -124,9 +124,38 @@ document.addEventListener("DOMContentLoaded", () => {
   const tabSummaryView = document.getElementById("tabSummaryView");
   const tabAnalyticsView = document.getElementById("tabAnalyticsView");
   const transcriptFeed = document.getElementById("transcriptFeed");
-  const actionItemsList = document.getElementById("actionItemsList");
-  const outlineList = document.getElementById("outlineList");
   const speakerStatsFeed = document.getElementById("speakerStatsFeed");
+
+  // Executive Brief Elements
+  const briefProviderName = document.getElementById("briefProviderName");
+  const briefStatusTag = document.getElementById("briefStatusTag");
+  const openLlmSettingsBtn = document.getElementById("openLlmSettingsBtn");
+  const generateBriefBtn = document.getElementById("generateBriefBtn");
+  const generateBriefBtnText = document.getElementById("generateBriefBtnText");
+  const generateBriefIcon = document.getElementById("generateBriefIcon");
+  const briefPromptContainer = document.getElementById("briefPromptContainer");
+  const briefLoadingContainer = document.getElementById("briefLoadingContainer");
+  const briefContentContainer = document.getElementById("briefContentContainer");
+  const triggerGenerateBtn = document.getElementById("triggerGenerateBtn");
+  const briefOverviewText = document.getElementById("briefOverviewText");
+  const briefFeedbackList = document.getElementById("briefFeedbackList");
+  const briefIdeasList = document.getElementById("briefIdeasList");
+  const briefActionItemsList = document.getElementById("briefActionItemsList");
+  const briefChaptersList = document.getElementById("briefChaptersList");
+
+  // LLM Config Modal Elements
+  const llmConfigModal = document.getElementById("llmConfigModal");
+  const closeLlmConfigBtn = document.getElementById("closeLlmConfigBtn");
+  const cancelLlmConfigBtn = document.getElementById("cancelLlmConfigBtn");
+  const saveLlmConfigBtn = document.getElementById("saveLlmConfigBtn");
+  const llmProviderSelect = document.getElementById("llmProviderSelect");
+  const llmApiKeyInput = document.getElementById("llmApiKeyInput");
+  const getApiKeyLink = document.getElementById("getApiKeyLink");
+  const apiKeyGroup = document.getElementById("apiKeyGroup");
+  const ollamaGroup = document.getElementById("ollamaGroup");
+  const ollamaHostInput = document.getElementById("ollamaHostInput");
+  const ollamaStatusText = document.getElementById("ollamaStatusText");
+  const llmConfigSavedMsg = document.getElementById("llmConfigSavedMsg");
 
   // Rename Modal
   const renameModal = document.getElementById("renameSpeakerModal");
@@ -560,8 +589,17 @@ document.addEventListener("DOMContentLoaded", () => {
       transcriptSection.scrollIntoView({ behavior: "smooth", block: "start" });
 
       renderScreenplay(currentSegments);
-      synthesizeStageNotes(currentSegments);
       renderDialogueRadar(currentSegments);
+
+      // Render Executive Brief if already synthesized, otherwise prompt to generate
+      if (data.summary && data.summary.overview) {
+        renderExecutiveBrief(data.summary);
+      } else {
+        renderUnsummarizedState();
+      }
+
+      // Default active tab to Executive Brief (Tab 1)
+      switchStageTab("summary");
 
       if (window.lucide) lucide.createIcons();
     } catch (err) {
@@ -649,67 +687,284 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.lucide) lucide.createIcons();
   }
 
-  // --- Tab 2: Extract Action Items & Notes ---
-  function synthesizeStageNotes(segments) {
-    actionItemsList.innerHTML = "";
-    outlineList.innerHTML = "";
-    if (!segments || segments.length === 0) return;
+  // --- Tab 1: Executive Brief & Structured Notes ---
+  function renderExecutiveBrief(summary) {
+    if (!summary) return;
+    briefPromptContainer.classList.add("hidden");
+    briefLoadingContainer.classList.add("hidden");
+    briefContentContainer.classList.remove("hidden");
 
-    const keywords = ["action", "todo", "need to", "will", "deadline", "by next", "agreed", "plan", "deliverable", "follow up", "important"];
-    const actions = [];
-    const timeline = {};
+    briefProviderName.textContent = summary.provider_name || "AI BRIEF";
+    briefStatusTag.textContent = "SYNTHESIZED";
 
-    segments.forEach((seg) => {
-      const lower = seg.text.toLowerCase();
-      if (keywords.some((kw) => lower.includes(kw))) {
-        actions.push({
-          speaker: seg.speaker_name || seg.speaker || "Speaker",
-          text: seg.text,
-          time: seg.start_time,
-        });
-      }
+    // 1. Overview Narrative
+    briefOverviewText.textContent = summary.overview || "No overview narrative available.";
 
-      // 60-second clusters
-      const bucket = Math.floor(seg.start_time / 60);
-      if (!timeline[bucket]) {
-        timeline[bucket] = {
-          start: bucket * 60,
-          items: [],
-        };
-      }
-      if (timeline[bucket].items.length < 2) {
-        timeline[bucket].items.push(seg.text);
-      }
-    });
-
-    if (actions.length === 0) {
-      actionItemsList.innerHTML = `<li class="text-xs font-mono text-[#191717]/60 italic p-2">NO ACTION ITEMS DETECTED.</li>`;
+    // 2. Key Takeaways & Feedback
+    briefFeedbackList.innerHTML = "";
+    const feedbackItems = summary.feedback || summary.takeaways || [];
+    if (feedbackItems.length === 0) {
+      briefFeedbackList.innerHTML = `<li class="text-xs font-mono text-[#191717]/60 italic p-3 bg-[#faf6ed] border border-[#191717]/20">NO SPECIFIC FEEDBACK OR DECISIONS RECORDED.</li>`;
     } else {
-      actions.forEach((a) => {
+      feedbackItems.forEach((item) => {
+        const point = item.point || item.text || (typeof item === "string" ? item : JSON.stringify(item));
+        const ctx = item.context || item.speaker || "";
         const li = document.createElement("li");
-        li.className = "p-3 bg-[#faf6ed] border-2 border-[#191717] flex items-start gap-3 shadow-[2px_2px_0px_#191717]";
+        li.className = "p-3 bg-[#faf6ed] border-2 border-[#191717] shadow-[2px_2px_0px_#191717] space-y-1";
         li.innerHTML = `
-          <span class="aya-badge-red text-[9px] mt-0.5 shrink-0">${formatTime(a.time)}</span>
-          <div class="flex-1">
-            <span class="font-mono font-black text-xs text-[#191717] uppercase">${escapeHtml(a.speaker)}:</span>
-            <span class="text-[#191717] ml-1 leading-relaxed font-medium">${escapeHtml(a.text)}</span>
-          </div>
+          <div class="font-bold text-xs sm:text-sm text-[#191717] leading-snug">${escapeHtml(point)}</div>
+          ${ctx ? `<div class="text-[11px] font-mono text-[#191717]/70 font-semibold">${escapeHtml(ctx)}</div>` : ""}
         `;
-        actionItemsList.appendChild(li);
+        briefFeedbackList.appendChild(li);
       });
     }
 
-    Object.keys(timeline).forEach((key) => {
-      const data = timeline[key];
-      const div = document.createElement("div");
-      div.className = "p-3.5 bg-[#faf6ed] border-2 border-[#191717] space-y-1 shadow-[2px_2px_0px_#191717]";
-      div.innerHTML = `
-        <div class="font-mono text-xs font-black text-[#ff2f11]">SECTION @ ${formatTime(data.start)}</div>
-        <p class="text-xs text-[#191717] leading-relaxed font-medium">${escapeHtml(data.items.join(" "))}</p>
-      `;
-      outlineList.appendChild(div);
-    });
+    // 3. Ideas & Brainstormed Concepts
+    briefIdeasList.innerHTML = "";
+    const ideas = summary.ideas || [];
+    if (ideas.length === 0) {
+      briefIdeasList.innerHTML = `<div class="text-xs font-mono text-[#191717]/60 italic p-3 bg-[#faf6ed] border border-[#191717]/20 col-span-2">NO NEW CONCEPTS OR PROPOSALS RECORDED.</div>`;
+    } else {
+      ideas.forEach((idea) => {
+        const title = idea.title || idea.name || "Proposed Concept";
+        const desc = idea.description || idea.desc || (typeof idea === "string" ? idea : "");
+        const card = document.createElement("div");
+        card.className = "p-3.5 bg-[#faf6ed] border-2 border-[#191717] space-y-1.5 shadow-[2px_2px_0px_#191717]";
+        card.innerHTML = `
+          <div class="flex items-center gap-1.5 text-xs font-stage font-black text-[#ff2f11] uppercase tracking-wide">
+            <i data-lucide="lightbulb" class="w-3.5 h-3.5 shrink-0"></i>
+            <span class="truncate">${escapeHtml(title)}</span>
+          </div>
+          <p class="text-xs text-[#191717] leading-relaxed font-medium">${escapeHtml(desc)}</p>
+        `;
+        briefIdeasList.appendChild(card);
+      });
+    }
+
+    // 4. Action Items & Next Steps (With Clickable Audio Timestamp Jump)
+    briefActionItemsList.innerHTML = "";
+    const actions = summary.action_items || [];
+    if (actions.length === 0) {
+      briefActionItemsList.innerHTML = `<li class="text-xs font-mono text-[#191717]/60 italic p-3 bg-[#faf6ed] border border-[#191717]/20">NO ACTION ITEMS DETECTED.</li>`;
+    } else {
+      actions.forEach((act) => {
+        const task = act.task || act.description || (typeof act === "string" ? act : "");
+        const owner = act.owner || act.assignee || "Unassigned";
+        const ts = act.timestamp || "";
+        const li = document.createElement("li");
+        li.className = "p-3 bg-[#faf6ed] border-2 border-[#191717] flex items-start justify-between gap-2.5 shadow-[2px_2px_0px_#191717]";
+
+        li.innerHTML = `
+          <div class="flex items-start gap-2.5 flex-1 min-w-0">
+            <i data-lucide="check-square" class="w-4 h-4 text-[#ff2f11] mt-0.5 shrink-0"></i>
+            <div class="min-w-0">
+              <span class="text-xs sm:text-sm font-body font-bold text-[#191717] leading-snug block">${escapeHtml(task)}</span>
+              <span class="text-[10px] font-mono text-[#191717]/60 font-semibold block mt-0.5">Assigned: ${escapeHtml(owner)}</span>
+            </div>
+          </div>
+          ${ts ? `<button class="jump-time-btn aya-btn-white py-0.5 px-2 text-[10px] font-mono font-bold text-[#ff2f11] hover:bg-[#ff2f11] hover:text-white transition shrink-0" data-time="${escapeHtml(ts)}" title="Play from this moment">[${escapeHtml(ts)}]</button>` : ""}
+        `;
+
+        if (ts) {
+          const btn = li.querySelector(".jump-time-btn");
+          btn.addEventListener("click", () => {
+            const sec = parseTimeStringToSeconds(ts);
+            if (wavesurfer) {
+              wavesurfer.setTime(sec);
+              wavesurfer.play();
+              setPlayState(true);
+            }
+          });
+        }
+
+        briefActionItemsList.appendChild(li);
+      });
+    }
+
+    // 5. Discussion Chapters
+    briefChaptersList.innerHTML = "";
+    const chapters = summary.chapters || [];
+    if (chapters.length === 0) {
+      briefChaptersList.innerHTML = `<div class="text-xs font-mono text-[#191717]/60 italic p-3 bg-[#faf6ed] border border-[#191717]/20">NO CHAPTER MARKERS.</div>`;
+    } else {
+      chapters.forEach((ch) => {
+        const title = ch.title || "Chapter";
+        const sum = ch.summary || "";
+        const startSec = ch.start_time || 0;
+        const row = document.createElement("div");
+        row.className = "p-2.5 bg-[#faf6ed] border-2 border-[#191717] flex items-start justify-between gap-2 shadow-[2px_2px_0px_#191717] cursor-pointer hover:bg-[#e4fc51] transition";
+        row.innerHTML = `
+          <div class="min-w-0 flex-1">
+            <span class="font-stage font-black text-xs text-[#191717] uppercase block">${escapeHtml(title)}</span>
+            <p class="text-[11px] font-body text-[#191717]/80 mt-0.5">${escapeHtml(sum)}</p>
+          </div>
+          <span class="aya-badge-red text-[9px] shrink-0 font-mono">${formatTime(startSec)}</span>
+        `;
+        row.addEventListener("click", () => {
+          if (wavesurfer) {
+            wavesurfer.setTime(startSec);
+            wavesurfer.play();
+            setPlayState(true);
+          }
+        });
+        briefChaptersList.appendChild(row);
+      });
+    }
+
+    if (window.lucide) lucide.createIcons();
   }
+
+  function renderUnsummarizedState() {
+    briefContentContainer.classList.add("hidden");
+    briefLoadingContainer.classList.add("hidden");
+    briefPromptContainer.classList.remove("hidden");
+    briefStatusTag.textContent = "READY";
+  }
+
+  function parseTimeStringToSeconds(timeStr) {
+    if (!timeStr) return 0;
+    const parts = timeStr.trim().split(":").map(Number);
+    if (parts.length === 3) {
+      return (parts[0] * 3600) + (parts[1] * 60) + parts[2];
+    } else if (parts.length === 2) {
+      return (parts[0] * 60) + parts[1];
+    }
+    return Number(timeStr) || 0;
+  }
+
+  // --- Executive Brief Generation Trigger ---
+  async function generateExecutiveBrief() {
+    if (!currentRecordingId) return;
+    briefPromptContainer.classList.add("hidden");
+    briefContentContainer.classList.add("hidden");
+    briefLoadingContainer.classList.remove("hidden");
+    generateBriefIcon.classList.add("animate-spin");
+    generateBriefBtnText.textContent = "GENERATING...";
+    briefStatusTag.textContent = "PROCESSING";
+
+    try {
+      const res = await fetch(`/api/recordings/${currentRecordingId}/summarize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || "Failed to generate brief");
+      }
+
+      if (data.status === "needs_config") {
+        openLlmConfigModal();
+        renderUnsummarizedState();
+        return;
+      }
+
+      renderExecutiveBrief(data);
+    } catch (err) {
+      alert("AI Brief Error: " + err.message);
+      renderUnsummarizedState();
+    } finally {
+      generateBriefIcon.classList.remove("animate-spin");
+      generateBriefBtnText.textContent = "REGENERATE";
+      briefLoadingContainer.classList.add("hidden");
+    }
+  }
+
+  generateBriefBtn.addEventListener("click", generateExecutiveBrief);
+  if (triggerGenerateBtn) triggerGenerateBtn.addEventListener("click", generateExecutiveBrief);
+
+  // --- LLM Settings Modal Handlers ---
+  function openLlmConfigModal() {
+    llmConfigModal.classList.remove("hidden");
+    fetchLlmStatus();
+  }
+
+  function closeLlmConfigModal() {
+    llmConfigModal.classList.add("hidden");
+    llmConfigSavedMsg.classList.add("hidden");
+  }
+
+  if (openLlmSettingsBtn) openLlmSettingsBtn.addEventListener("click", openLlmConfigModal);
+  if (closeLlmConfigBtn) closeLlmConfigBtn.addEventListener("click", closeLlmConfigModal);
+  if (cancelLlmConfigBtn) cancelLlmConfigBtn.addEventListener("click", closeLlmConfigModal);
+
+  async function fetchLlmStatus() {
+    try {
+      const res = await fetch("/api/llm/status");
+      if (!res.ok) return;
+      const data = await res.json();
+
+      llmProviderSelect.value = data.active_provider || "auto";
+      updateProviderFields(llmProviderSelect.value);
+
+      if (data.ollama_connected) {
+        const models = (data.ollama_models || []).join(", ") || "llama3.2";
+        ollamaStatusText.textContent = `Connected (Models: ${models})`;
+        ollamaConnectionStatus.className = "p-2.5 bg-[#e4fc51] border border-[#191717] text-[10px] text-[#191717] font-bold flex items-center gap-2";
+      } else {
+        ollamaStatusText.textContent = "Ollama not running (Start Ollama on PC to use)";
+        ollamaConnectionStatus.className = "p-2.5 bg-[#faf6ed] border border-[#191717] text-[10px] text-[#ff2f11] font-bold flex items-center gap-2";
+      }
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+
+  llmProviderSelect.addEventListener("change", (e) => {
+    updateProviderFields(e.target.value);
+  });
+
+  function updateProviderFields(provider) {
+    if (provider === "ollama") {
+      apiKeyGroup.classList.add("hidden");
+      ollamaGroup.classList.remove("hidden");
+    } else {
+      apiKeyGroup.classList.remove("hidden");
+      ollamaGroup.classList.add("hidden");
+      if (provider === "gemini") {
+        getApiKeyLink.href = "https://aistudio.google.com/app/apikey";
+        getApiKeyLink.textContent = "Get Free Gemini Key";
+        llmApiKeyInput.placeholder = "Paste Gemini API key (AIza...)";
+      } else {
+        getApiKeyLink.href = "https://console.groq.com/keys";
+        getApiKeyLink.textContent = "Get Free Groq Key";
+        llmApiKeyInput.placeholder = "Paste Groq API key (gsk_...)";
+      }
+    }
+  }
+
+  saveLlmConfigBtn.addEventListener("click", async () => {
+    const provider = llmProviderSelect.value;
+    const key = llmApiKeyInput.value.trim();
+    const ollamaHost = ollamaHostInput.value.trim();
+
+    const payload = { provider };
+    if (key) {
+      if (provider === "gemini" || key.startsWith("AIza")) {
+        payload.gemini_api_key = key;
+      } else {
+        payload.groq_api_key = key;
+      }
+    }
+    if (ollamaHost) {
+      payload.ollama_host = ollamaHost;
+    }
+
+    try {
+      const res = await fetch("/api/llm/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      llmConfigSavedMsg.classList.remove("hidden");
+      setTimeout(() => {
+        closeLlmConfigModal();
+      }, 1000);
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+  });
 
   // --- Tab 3: Speaker Breakdown ---
   function renderDialogueRadar(segments) {

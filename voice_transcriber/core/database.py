@@ -49,6 +49,12 @@ def init_db() -> None:
                 FOREIGN KEY (recording_id) REFERENCES recordings (id) ON DELETE CASCADE
             )
         """)
+        # Schema migration: Ensure summary_json column exists
+        cursor.execute("PRAGMA table_info(recordings)")
+        cols = [row[1] for row in cursor.fetchall()]
+        if "summary_json" not in cols:
+            cursor.execute("ALTER TABLE recordings ADD COLUMN summary_json TEXT")
+
         conn.commit()
 
 
@@ -170,3 +176,10 @@ def delete_recording(rec_id: str) -> None:
     with get_connection() as conn:
         conn.execute("DELETE FROM recordings WHERE id = ?", (rec_id,))
         conn.commit()
+
+
+def save_recording_summary(rec_id: str, summary_json: str) -> None:
+    with get_connection() as conn:
+        conn.execute("UPDATE recordings SET summary_json = ? WHERE id = ?", (summary_json, rec_id))
+        conn.commit()
+

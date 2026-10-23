@@ -311,45 +311,128 @@
         </div>
       </div>
 
-      <!-- Content Tabs -->
+      <!-- Content Tabs (Executive Brief is Primary) -->
       <div class="flex items-center gap-1.5 sm:gap-2 border-b-2 border-[#191717]/15 pb-2.5 font-mono text-xs font-black overflow-x-auto scrollbar-none">
-        <button id="tabTranscriptBtn" class="px-3 py-1.5 sm:px-4 sm:py-2 bg-[#ff2f11] text-white border-2 border-[#191717] shadow-[2px_2px_0px_#191717] whitespace-nowrap transition">
-          01 // SCRIPT
+        <button id="tabSummaryBtn" class="px-3 py-1.5 sm:px-4 sm:py-2 bg-[#ff2f11] text-white border-2 border-[#191717] shadow-[2px_2px_0px_#191717] whitespace-nowrap transition flex items-center gap-1.5">
+          <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+          <span>01 // EXECUTIVE BRIEF</span>
         </button>
-        <button id="tabSummaryBtn" class="px-3 py-1.5 sm:px-4 sm:py-2 bg-[#faf6ed] text-[#191717] hover:bg-[#e4fc51] border-2 border-[#191717] shadow-[2px_2px_0px_#191717] whitespace-nowrap transition">
-          02 // ACTION ITEMS
+        <button id="tabTranscriptBtn" class="px-3 py-1.5 sm:px-4 sm:py-2 bg-[#faf6ed] text-[#191717] hover:bg-[#e4fc51] border-2 border-[#191717] shadow-[2px_2px_0px_#191717] whitespace-nowrap transition flex items-center gap-1.5">
+          <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+          <span>02 // FULL SCRIPT</span>
         </button>
-        <button id="tabAnalyticsBtn" class="px-3 py-1.5 sm:px-4 sm:py-2 bg-[#faf6ed] text-[#191717] hover:bg-[#e4fc51] border-2 border-[#191717] shadow-[2px_2px_0px_#191717] whitespace-nowrap transition">
-          03 // SPEAKERS
+        <button id="tabAnalyticsBtn" class="px-3 py-1.5 sm:px-4 sm:py-2 bg-[#faf6ed] text-[#191717] hover:bg-[#e4fc51] border-2 border-[#191717] shadow-[2px_2px_0px_#191717] whitespace-nowrap transition flex items-center gap-1.5">
+          <i data-lucide="users" class="w-3.5 h-3.5"></i>
+          <span>03 // SPEAKERS</span>
         </button>
       </div>
 
-      <!-- Tab 1: Script Dialogue -->
-      <div id="tabTranscriptView" class="space-y-3.5 max-h-[500px] sm:max-h-[550px] overflow-y-auto pr-1">
+      <!-- Tab 1: Executive Brief & Structured Notes (Active Default) -->
+      <div id="tabSummaryView" class="space-y-4 max-h-[550px] sm:max-h-[600px] overflow-y-auto pr-1">
+        
+        <!-- AI Toolbar & Status Header -->
+        <div class="flex flex-wrap items-center justify-between gap-2.5 pb-2 border-b-2 border-[#191717]/15">
+          <div class="flex items-center gap-2">
+            <span class="aya-badge-black text-[10px] flex items-center gap-1.5">
+              <i data-lucide="cpu" class="w-3 h-3 text-[#ff2f11]"></i>
+              <span id="briefProviderName">AI BRIEF</span>
+            </span>
+            <span id="briefStatusTag" class="text-[10px] font-mono text-[#191717]/60 font-bold uppercase">READY</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="openLlmSettingsBtn" class="aya-btn-white py-1 px-2.5 text-xs font-mono font-bold flex items-center gap-1.5" title="Configure Groq, Gemini, or Ollama">
+              <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+              <span class="hidden sm:inline">AI SETTINGS</span>
+            </button>
+            <button id="generateBriefBtn" class="aya-btn-red py-1 px-3 text-xs uppercase font-mono font-bold flex items-center gap-1.5 shadow-[2px_2px_0px_#191717]">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="generateBriefIcon"></i>
+              <span id="generateBriefBtnText">GENERATE BRIEF</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Prompt to Generate / Loading Banner -->
+        <div id="briefPromptContainer" class="hidden p-6 bg-[#faf6ed] border-2 border-dashed border-[#191717]/30 text-center space-y-3">
+          <div class="w-10 h-10 mx-auto bg-[#ff2f11] text-white flex items-center justify-center border-2 border-[#191717] shadow-[2px_2px_0px_#191717]">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+          <div class="space-y-1">
+            <h4 class="font-stage font-black text-sm text-[#191717] uppercase">GENERATE EXECUTIVE BRIEF</h4>
+            <p class="text-xs font-mono text-[#191717]/70 max-w-md mx-auto">
+              Synthesize key takeaways, constructive feedback, creative ideas, and timestamped action items using Groq, Gemini, or local Ollama.
+            </p>
+          </div>
+          <button id="triggerGenerateBtn" class="aya-btn-red py-2 px-5 text-xs uppercase font-mono font-black inline-flex items-center gap-2">
+            <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+            <span>GENERATE NOW</span>
+          </button>
+        </div>
+
+        <!-- Loading State Indicator -->
+        <div id="briefLoadingContainer" class="hidden p-8 bg-[#faf6ed] border-2 border-[#191717] text-center space-y-3 shadow-[3px_3px_0px_#191717]">
+          <div class="w-8 h-8 mx-auto border-3 border-[#191717] border-t-[#ff2f11] rounded-full animate-spin"></div>
+          <p class="font-stage font-black text-xs text-[#191717] uppercase tracking-wide">
+            ANALYZING RECORDING & EXTRACTING NOTES...
+          </p>
+          <p class="text-[11px] font-mono text-[#191717]/60">Processing with Groq / Gemini / Ollama</p>
+        </div>
+
+        <!-- Populated Structured Cards -->
+        <div id="briefContentContainer" class="space-y-4">
+          
+          <!-- 1. Executive Overview / TL;DR -->
+          <div class="aya-tile p-4 sm:p-5 space-y-2.5 shadow-[3px_3px_0px_#191717]">
+            <div class="flex items-center gap-2 pb-2 border-b border-[#191717]/15">
+              <i data-lucide="compass" class="w-4 h-4 text-[#ff2f11]"></i>
+              <span class="font-stage font-black text-xs uppercase text-[#191717] tracking-wider">EXECUTIVE OVERVIEW</span>
+            </div>
+            <p id="briefOverviewText" class="text-sm font-body text-[#191717] leading-relaxed whitespace-pre-line"></p>
+          </div>
+
+          <!-- 2. Key Takeaways & Feedback -->
+          <div class="aya-tile p-4 sm:p-5 space-y-3 shadow-[3px_3px_0px_#191717]">
+            <div class="flex items-center gap-2 pb-2 border-b border-[#191717]/15">
+              <i data-lucide="check-circle-2" class="w-4 h-4 text-[#ff2f11]"></i>
+              <span class="font-stage font-black text-xs uppercase text-[#191717] tracking-wider">KEY TAKEAWAYS & FEEDBACK</span>
+            </div>
+            <ul id="briefFeedbackList" class="space-y-2 text-sm font-body text-[#191717]"></ul>
+          </div>
+
+          <!-- 3. Ideas & Brainstormed Concepts -->
+          <div class="aya-tile p-4 sm:p-5 space-y-3 shadow-[3px_3px_0px_#191717]">
+            <div class="flex items-center gap-2 pb-2 border-b border-[#191717]/15">
+              <i data-lucide="lightbulb" class="w-4 h-4 text-[#ff2f11]"></i>
+              <span class="font-stage font-black text-xs uppercase text-[#191717] tracking-wider">IDEAS & BRAINSTORMING VAULT</span>
+            </div>
+            <div id="briefIdeasList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+          </div>
+
+          <!-- 4. Action Items & Suggestions -->
+          <div class="aya-tile p-4 sm:p-5 space-y-3 shadow-[3px_3px_0px_#191717]">
+            <div class="flex items-center gap-2 pb-2 border-b border-[#191717]/15">
+              <i data-lucide="list-checks" class="w-4 h-4 text-[#ff2f11]"></i>
+              <span class="font-stage font-black text-xs uppercase text-[#191717] tracking-wider">ACTION ITEMS & NEXT STEPS</span>
+            </div>
+            <ul id="briefActionItemsList" class="space-y-2 text-sm font-body text-[#191717]"></ul>
+          </div>
+
+          <!-- 5. Discussion Chapters -->
+          <div class="aya-tile p-4 sm:p-5 space-y-3 shadow-[3px_3px_0px_#191717]">
+            <div class="flex items-center gap-2 pb-2 border-b border-[#191717]/15">
+              <i data-lucide="clock" class="w-4 h-4 text-[#ff2f11]"></i>
+              <span class="font-stage font-black text-xs uppercase text-[#191717] tracking-wider">DISCUSSION CHAPTERS</span>
+            </div>
+            <div id="briefChaptersList" class="space-y-2 text-xs font-mono"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Tab 2: Script Dialogue (Verbatim Archive) -->
+      <div id="tabTranscriptView" class="hidden space-y-3.5 max-h-[500px] sm:max-h-[550px] overflow-y-auto pr-1">
         <div id="transcriptFeed" class="space-y-3.5">
           <!-- Populated by JavaScript -->
-        </div>
-      </div>
-
-      <!-- Tab 2: Action Items & Chronological Outline -->
-      <div id="tabSummaryView" class="hidden space-y-4 max-h-[500px] sm:max-h-[550px] overflow-y-auto pr-1">
-        <div class="aya-tile p-4 sm:p-5 space-y-2.5 shadow-[3px_3px_0px_#191717]">
-          <div class="flex items-center gap-2">
-            <span class="aya-badge-red text-[10px]">ACTION ITEMS</span>
-            <span class="text-xs font-mono font-bold text-[#191717]/70">Extracted Tasks</span>
-          </div>
-          <ul id="actionItemsList" class="space-y-2 text-sm font-body text-[#191717]">
-            <!-- Populated by JavaScript -->
-          </ul>
-        </div>
-        <div class="aya-tile p-4 sm:p-5 space-y-2.5 shadow-[3px_3px_0px_#191717]">
-          <div class="flex items-center gap-2">
-            <span class="aya-badge-yellow text-[10px]">TIMELINE</span>
-            <span class="text-xs font-mono font-bold text-[#191717]/70">Chronological Outline</span>
-          </div>
-          <div id="outlineList" class="space-y-2.5 text-sm font-body text-[#191717]">
-            <!-- Populated by JavaScript -->
-          </div>
         </div>
       </div>
 
@@ -428,6 +511,64 @@
       <div class="flex justify-end gap-2.5 pt-2">
         <button id="cancelRenameBtn" class="aya-btn-white px-3.5 py-1.5 text-xs font-bold">Cancel</button>
         <button id="saveRenameBtn" class="aya-btn-red px-4 py-1.5 text-xs uppercase font-black">Save Speaker</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LLM Provider Configuration Modal (Groq / Gemini / Ollama) -->
+  <div id="llmConfigModal" class="hidden fixed inset-0 bg-[#191717]/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 font-mono">
+    <div class="bg-[#f1ead8] border-2 border-[#191717] max-w-md w-full p-5 sm:p-6 shadow-[8px_8px_0px_#191717] space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b-2 border-[#191717]/15">
+        <div class="flex items-center gap-2">
+          <i data-lucide="cpu" class="w-4 h-4 text-[#ff2f11]"></i>
+          <h3 class="font-stage font-black text-sm text-[#191717] uppercase">AI ENGINE SETTINGS</h3>
+        </div>
+        <button id="closeLlmConfigBtn" class="text-[#191717] hover:text-[#ff2f11] p-1" title="Close">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-[#191717]/80 font-sans leading-relaxed">
+        Configure your intelligence provider for meeting briefs, critique, ideas, and action items. Works seamlessly across desktop and phone.
+      </p>
+
+      <div class="space-y-3.5 text-xs font-mono">
+        <div>
+          <label class="block font-bold text-[#191717] uppercase mb-1">Provider Engine</label>
+          <select id="llmProviderSelect" class="w-full bg-[#faf6ed] border-2 border-[#191717] p-2 text-xs font-mono font-bold text-[#191717] focus:outline-none focus:bg-white shadow-[2px_2px_0px_#191717]">
+            <option value="auto">Auto-Detect Available Provider</option>
+            <option value="groq">Groq (Llama 3.3 70B - Recommended Free)</option>
+            <option value="gemini">Google Gemini 1.5 Flash (Free)</option>
+            <option value="ollama">Local Ollama (100% Offline)</option>
+          </select>
+        </div>
+
+        <div id="apiKeyGroup">
+          <div class="flex items-center justify-between mb-1">
+            <label class="block font-bold text-[#191717] uppercase">API Key</label>
+            <a id="getApiKeyLink" href="https://console.groq.com/keys" target="_blank" class="text-[10px] text-[#ff2f11] underline font-bold">Get Free Key</a>
+          </div>
+          <input type="password" id="llmApiKeyInput" placeholder="Paste Groq or Gemini API key" class="w-full bg-[#faf6ed] border-2 border-[#191717] p-2 text-xs font-mono text-[#191717] focus:outline-none focus:bg-white shadow-[2px_2px_0px_#191717]">
+        </div>
+
+        <div id="ollamaGroup" class="hidden space-y-2">
+          <div>
+            <label class="block font-bold text-[#191717] uppercase mb-1">Ollama Host</label>
+            <input type="text" id="ollamaHostInput" value="http://localhost:11434" class="w-full bg-[#faf6ed] border-2 border-[#191717] p-2 text-xs font-mono text-[#191717] focus:outline-none focus:bg-white shadow-[2px_2px_0px_#191717]">
+          </div>
+          <div id="ollamaConnectionStatus" class="p-2.5 bg-[#faf6ed] border border-[#191717] text-[10px] text-[#191717] font-bold flex items-center gap-2">
+            <i data-lucide="server" class="w-3.5 h-3.5"></i>
+            <span id="ollamaStatusText">Checking Ollama connection...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-2 border-t border-[#191717]/15">
+        <span id="llmConfigSavedMsg" class="text-[11px] font-mono text-[#ff2f11] font-bold hidden">SETTINGS SAVED</span>
+        <div class="flex gap-2 ml-auto">
+          <button id="cancelLlmConfigBtn" class="aya-btn-white px-3.5 py-1.5 text-xs font-bold">Cancel</button>
+          <button id="saveLlmConfigBtn" class="aya-btn-red px-4 py-1.5 text-xs uppercase font-black">Save & Apply</button>
+        </div>
       </div>
     </div>
   </div>

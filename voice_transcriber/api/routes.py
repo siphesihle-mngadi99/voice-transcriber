@@ -43,6 +43,11 @@ from voice_transcriber.core.database import (
     update_recording_status,
 )
 from voice_transcriber.core.transcriber import transcribe_recording
+from voice_transcriber.core.summarizer import (
+    summarize_recording,
+    detect_llm_status,
+    save_llm_config,
+)
 from voice_transcriber.core.export import (
     export_markdown,
     export_srt,
@@ -80,6 +85,20 @@ def broadcast_event(recording_id: str, payload: Dict[str, Any]):
 class SpeakerUpdateModel(BaseModel):
     speaker_tag: str
     display_name: str
+
+
+class LLMConfigModel(BaseModel):
+    provider: Optional[str] = "auto"
+    groq_api_key: Optional[str] = None
+    gemini_api_key: Optional[str] = None
+    ollama_host: Optional[str] = None
+    ollama_model: Optional[str] = None
+
+
+class SummarizeRequestModel(BaseModel):
+    provider: Optional[str] = None
+    api_key: Optional[str] = None
+
 
 
 @app.on_event("startup")
@@ -196,16 +215,55 @@ def get_all_recordings():
 
 @app.get("/api/recordings/{rec_id}")
 def get_recording_detail(rec_id: str):
-    """Returns recording metadata along with all transcribed segments."""
+    """Returns recording metadata along with all transcribed segments and generated summary."""
     rec = get_recording(rec_id)
     if not rec:
         raise HTTPException(status_code=404, detail="Recording not found")
 
     segments = get_segments(rec_id)
+    summary_data = None
+    if rec.get("summary_json"):
+        try:
+            summary_data = json.loads(rec["summary_json"])
+        except Exception:
+            pass
+
     return {
         "recording": rec,
         "segments": segments,
+        "summary": summary_data,
     }
+
+
+@app.get("/api/llm/status")
+def get_llm_status():
+    """Detects available LLM providers (Ollama, Groq, Gemini)."""
+    return detect_llm_status()
+
+
+@app.post("/api/llm/config")
+def update_llm_config(cfg: LLMConfigModel):
+    """Saves LLM API keys and model configuration."""
+    update_data = {k: v for k, v in cfg.dict().items() if v is not None}
+    save_llm_config(update_data)
+    return {"status": "saved", "config": detect_llm_status()}
+
+
+@app.post("/api/recordings/{rec_id}/summarize")
+def generate_summary(rec_id: str, req: Optional[SummarizeRequestModel] = None):
+    """Generates structured executive brief notes for a recording using the configured LLM."""
+    rec = get_recording(rec_id)
+    if not rec:
+        raise HTTPException(status_code=404, detail="Recording not found")
+
+    provider = req.provider if req else None
+    api_key = req.api_key if req else None
+    try:
+        notes = summarize_recording(rec_id, provider=provider, api_key=api_key)
+        return notes
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 
 @app.get("/api/recordings/{rec_id}/events")
