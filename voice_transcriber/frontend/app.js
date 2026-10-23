@@ -1,4 +1,4 @@
-// VoiceScribe — Danstheater AYA Theatrical Brutalist Stage Engine
+// VoiceScribe — Clean Audio Transcriber (Aya Brutalist Engine)
 document.addEventListener("DOMContentLoaded", () => {
   if (window.lucide) {
     lucide.createIcons();
@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveRenameBtn = document.getElementById("saveRenameBtn");
   const cancelRenameBtn = document.getElementById("cancelRenameBtn");
 
-  // Authentic AYA Poster Performer Badges
+  // AYA Poster Speaker Badges
   const PERFORMER_PALETTES = [
     { badge: "bg-[#ff2f11] text-white border-2 border-[#191717] shadow-[2px_2px_0px_#191717]", dot: "bg-white" },
     { badge: "bg-[#e4fc51] text-[#191717] border-2 border-[#191717] shadow-[2px_2px_0px_#191717]", dot: "bg-[#191717]" },
@@ -144,7 +144,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById("waveformContainer");
     container.innerHTML = "";
 
-    // Authentic AYA colors: Warm sand ink base with AYA Vermilion Flame Red progress
     wavesurfer = WaveSurfer.create({
       container: container,
       waveColor: "#c5bca5",
@@ -247,7 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
     startTranscribeBtn.disabled = false;
   }
 
-  // --- Voice Memo Mic Recording (Theatrical Stage Red LED) ---
+  // --- Voice Memo Mic Recording ---
   micRecordCard.addEventListener("click", async () => {
     if (!isRecording) {
       try {
@@ -316,7 +315,7 @@ document.addEventListener("DOMContentLoaded", () => {
     progressContainer.classList.remove("hidden");
     progressBar.style.width = "5%";
     progressPercent.textContent = "5%";
-    progressStatusText.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#ff2f11] animate-ping"></span> INGESTING AUDIO STREAM...`;
+    progressStatusText.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-[#ff2f11] animate-ping"></span> PROCESSING AUDIO...`;
 
     const formData = new FormData();
     formData.append("file", selectedFile);
@@ -391,7 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentRecordingId = recId;
     try {
       const res = await fetch(`/api/recordings/${recId}`);
-      if (!res.ok) throw new Error("Could not load session");
+      if (!res.ok) throw new Error("Could not load recording");
 
       const data = await res.json();
       const rec = data.recording;
@@ -417,11 +416,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- Tab 1: Render Screenplay Script Dialogue ---
+  // --- Tab 1: Render Script Dialogue ---
   function renderScreenplay(segments) {
     transcriptFeed.innerHTML = "";
     if (!segments || segments.length === 0) {
-      transcriptFeed.innerHTML = `<p class="text-xs font-mono text-[#191717]/60 italic p-4 text-center">NO DIALOGUE SIGNALS RECORDED ON STAGE.</p>`;
+      transcriptFeed.innerHTML = `<p class="text-xs font-mono text-[#191717]/60 italic p-4 text-center">NO TRANSCRIPTION DATA AVAILABLE.</p>`;
       return;
     }
 
@@ -444,7 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const speakerBadge = document.createElement("button");
         speakerBadge.className = `aya-badge ${palette.badge} cursor-pointer transition flex items-center gap-2`;
-        speakerBadge.title = "Tap to rename performer";
+        speakerBadge.title = "Tap to rename speaker";
 
         speakerBadge.innerHTML = `
           <span class="w-1.5 h-1.5 rounded-full ${palette.dot}"></span>
@@ -458,7 +457,7 @@ document.addEventListener("DOMContentLoaded", () => {
         transcriptFeed.appendChild(currentBlock);
       }
 
-      // Screenplay Line
+      // Line item
       const lineItem = document.createElement("div");
       lineItem.id = `segment-${index}`;
       lineItem.className = "script-line p-2.5 flex items-start gap-3 cursor-pointer";
@@ -485,7 +484,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.lucide) lucide.createIcons();
   }
 
-  // --- Tab 2: Synthesize Stage Notes & Commitments ---
+  // --- Tab 2: Extract Action Items & Notes ---
   function synthesizeStageNotes(segments) {
     actionItemsList.innerHTML = "";
     outlineList.innerHTML = "";
@@ -505,7 +504,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
 
-      // 60-second scene clusters
+      // 60-second clusters
       const bucket = Math.floor(seg.start_time / 60);
       if (!timeline[bucket]) {
         timeline[bucket] = {
@@ -519,7 +518,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (actions.length === 0) {
-      actionItemsList.innerHTML = `<li class="text-xs font-mono text-[#191717]/60 italic p-2">NO FORMAL COMMITMENT MARKERS FOUND.</li>`;
+      actionItemsList.innerHTML = `<li class="text-xs font-mono text-[#191717]/60 italic p-2">NO ACTION ITEMS DETECTED.</li>`;
     } else {
       actions.forEach((a) => {
         const li = document.createElement("li");
@@ -540,14 +539,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const div = document.createElement("div");
       div.className = "p-3.5 bg-[#faf6ed] border-2 border-[#191717] space-y-1 shadow-[2px_2px_0px_#191717]";
       div.innerHTML = `
-        <div class="font-mono text-xs font-black text-[#ff2f11]">ACT SCENE @ ${formatTime(data.start)}</div>
+        <div class="font-mono text-xs font-black text-[#ff2f11]">SECTION @ ${formatTime(data.start)}</div>
         <p class="text-xs text-[#191717] leading-relaxed font-medium">${escapeHtml(data.items.join(" "))}</p>
       `;
       outlineList.appendChild(div);
     });
   }
 
-  // --- Tab 3: Dialogue Radar Breakdown ---
+  // --- Tab 3: Speaker Breakdown ---
   function renderDialogueRadar(segments) {
     speakerStatsFeed.innerHTML = "";
     if (!segments || segments.length === 0) return;
@@ -584,7 +583,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Screenplay Tab Switching ---
+  // --- Tab Switching ---
   tabTranscriptBtn.addEventListener("click", () => switchStageTab("transcript"));
   tabSummaryBtn.addEventListener("click", () => switchStageTab("summary"));
   tabAnalyticsBtn.addEventListener("click", () => switchStageTab("analytics"));
@@ -613,7 +612,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- Transport Controls (Linked to WaveSurfer) ---
+  // --- Transport Controls ---
   function togglePlayPause() {
     if (wavesurfer) wavesurfer.playPause();
   }
@@ -710,7 +709,7 @@ document.addEventListener("DOMContentLoaded", () => {
   copyTranscriptBtn.addEventListener("click", () => {
     if (!currentSegments || currentSegments.length === 0) return;
     const full = currentSegments
-      .map((s) => `[${formatTime(s.start_time)}] ${s.speaker_name || s.speaker || "Performer"}: ${s.text}`)
+      .map((s) => `[${formatTime(s.start_time)}] ${s.speaker_name || s.speaker || "Speaker"}: ${s.text}`)
       .join("\n\n");
 
     navigator.clipboard.writeText(full).then(() => {
@@ -754,7 +753,7 @@ document.addEventListener("DOMContentLoaded", () => {
       historyList.innerHTML = "";
 
       if (list.length === 0) {
-        historyList.innerHTML = `<p class="text-xs font-mono text-[#191717]/60 italic p-3 text-center">NO ARCHIVED SESSIONS</p>`;
+        historyList.innerHTML = `<p class="text-xs font-mono text-[#191717]/60 italic p-3 text-center">NO ARCHIVED RECORDINGS</p>`;
         return;
       }
 
@@ -787,7 +786,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const delBtn = row.querySelector(".delete-btn");
         delBtn.addEventListener("click", async (e) => {
           e.stopPropagation();
-          if (confirm("Delete session from archive?")) {
+          if (confirm("Delete recording from archive?")) {
             await fetch(`/api/recordings/${item.id}`, { method: "DELETE" });
             if (currentRecordingId === item.id) {
               transcriptSection.classList.add("hidden");
@@ -811,8 +810,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (copyShareBtn) {
     copyShareBtn.addEventListener("click", () => {
       navigator.clipboard.writeText(window.location.origin).then(() => {
-        copyShareBtn.textContent = "COPIED!";
-        setTimeout(() => (copyShareBtn.textContent = "Share Link"), 2000);
+        copyShareBtn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-[#ff2f11]"></i> <span>COPIED</span>`;
+        if (window.lucide) lucide.createIcons();
+        setTimeout(() => {
+          copyShareBtn.innerHTML = `<i data-lucide="share-2" class="w-3.5 h-3.5"></i> <span>SHARE</span>`;
+          if (window.lucide) lucide.createIcons();
+        }, 2000);
       });
     });
   }

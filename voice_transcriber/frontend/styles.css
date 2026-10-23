@@ -80,6 +80,15 @@ body {
   box-shadow: 1px 1px 0px 0px var(--aya-black);
 }
 
+.aya-btn-red:disabled {
+  background: #ded6c1;
+  color: #7d7563;
+  border-color: #8c826e;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .aya-btn-yellow {
   background: var(--aya-yellow);
   color: var(--aya-black);
@@ -98,6 +107,15 @@ body {
 .aya-btn-yellow:active:not(:disabled) {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0px 0px var(--aya-black);
+}
+
+.aya-btn-yellow:disabled {
+  background: #ded6c1;
+  color: #7d7563;
+  border-color: #8c826e;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .aya-btn-black {
