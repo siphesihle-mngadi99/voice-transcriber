@@ -353,12 +353,12 @@
 
         <!-- Prompt to Generate / Loading Banner -->
         <div id="briefPromptContainer" class="hidden p-8 sm:p-10 bg-[#faf6ed] border-2 border-dashed border-[#191717]/30 text-center space-y-4">
-          <div class="w-12 h-12 mx-auto bg-[#ff2f11] text-white flex items-center justify-center border-2 border-[#191717] shadow-[3px_3px_0px_#191717]">
+          <div id="briefPromptIcon" class="w-12 h-12 mx-auto bg-[#ff2f11] text-white flex items-center justify-center border-2 border-[#191717] shadow-[3px_3px_0px_#191717]">
             <i data-lucide="sparkles" class="w-6 h-6"></i>
           </div>
           <div class="space-y-1.5">
-            <h4 class="font-stage font-black text-base text-[#191717] uppercase tracking-wide">GENERATE EXECUTIVE BRIEF</h4>
-            <p class="text-xs sm:text-sm font-body text-[#191717]/70 max-w-lg mx-auto leading-relaxed">
+            <h4 id="briefPromptTitle" class="font-stage font-black text-base text-[#191717] uppercase tracking-wide">GENERATE EXECUTIVE BRIEF</h4>
+            <p id="briefPromptDesc" class="text-xs sm:text-sm font-body text-[#191717]/70 max-w-lg mx-auto leading-relaxed">
               Synthesize key takeaways, constructive feedback, creative ideas, and timestamped action items using your embedded Groq engine.
             </p>
           </div>

@@ -134,6 +134,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const generateBriefBtnText = document.getElementById("generateBriefBtnText");
   const generateBriefIcon = document.getElementById("generateBriefIcon");
   const briefPromptContainer = document.getElementById("briefPromptContainer");
+  const briefPromptIcon = document.getElementById("briefPromptIcon");
+  const briefPromptTitle = document.getElementById("briefPromptTitle");
+  const briefPromptDesc = document.getElementById("briefPromptDesc");
   const briefLoadingContainer = document.getElementById("briefLoadingContainer");
   const briefContentContainer = document.getElementById("briefContentContainer");
   const triggerGenerateBtn = document.getElementById("triggerGenerateBtn");
@@ -569,7 +572,30 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     eventSource.onerror = () => {
-      setTimeout(() => loadRecordingDetails(recId), 1500);
+      // Don't blindly jump into details if transcription is still running in background
+      fetch(`/api/recordings/${recId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          const rec = data.recording;
+          if (rec && rec.status === "completed") {
+            if (eventSource) eventSource.close();
+            progressContainer.classList.add("hidden");
+            loadRecordingDetails(recId);
+            loadRecordingsList();
+          } else if (rec && rec.status === "failed") {
+            if (eventSource) eventSource.close();
+            progressStatusText.innerHTML = `<span class="text-[#ff2f11] font-bold">⚠️ ${rec.error_message || "Transcription failed"}</span>`;
+            startTranscribeBtn.disabled = false;
+          } else {
+            // Still transcribing on server: retry SSE stream in 3 seconds
+            setTimeout(() => {
+              if (currentRecordingId === recId && (!eventSource || eventSource.readyState === EventSource.CLOSED)) {
+                subscribeToEvents(recId);
+              }
+            }, 3000);
+          }
+        })
+        .catch(() => {});
     };
   }
 
@@ -952,7 +978,35 @@ document.addEventListener("DOMContentLoaded", () => {
     briefContentContainer.classList.add("hidden");
     briefLoadingContainer.classList.add("hidden");
     briefPromptContainer.classList.remove("hidden");
-    briefStatusTag.textContent = "READY";
+
+    if (!currentSegments || currentSegments.length === 0) {
+      if (briefPromptIcon) briefPromptIcon.innerHTML = `<i data-lucide="clock" class="w-6 h-6"></i>`;
+      if (briefPromptTitle) briefPromptTitle.textContent = "TRANSCRIPTION REQUIRED";
+      if (briefPromptDesc) briefPromptDesc.textContent = "This recording has 0 transcript segments. Please allow the audio transcription to finish before synthesizing an Executive Brief.";
+      if (triggerGenerateBtn) {
+        triggerGenerateBtn.disabled = true;
+        triggerGenerateBtn.classList.add("opacity-50", "cursor-not-allowed");
+      }
+      if (generateBriefBtn) {
+        generateBriefBtn.disabled = true;
+        generateBriefBtn.classList.add("opacity-50", "cursor-not-allowed");
+      }
+      if (briefStatusTag) briefStatusTag.textContent = "AWAITING TRANSCRIPT";
+    } else {
+      if (briefPromptIcon) briefPromptIcon.innerHTML = `<i data-lucide="sparkles" class="w-6 h-6"></i>`;
+      if (briefPromptTitle) briefPromptTitle.textContent = "GENERATE EXECUTIVE BRIEF";
+      if (briefPromptDesc) briefPromptDesc.textContent = "Synthesize key takeaways, constructive feedback, creative ideas, and timestamped action items using your embedded Groq engine.";
+      if (triggerGenerateBtn) {
+        triggerGenerateBtn.disabled = false;
+        triggerGenerateBtn.classList.remove("opacity-50", "cursor-not-allowed");
+      }
+      if (generateBriefBtn) {
+        generateBriefBtn.disabled = false;
+        generateBriefBtn.classList.remove("opacity-50", "cursor-not-allowed");
+      }
+      if (briefStatusTag) briefStatusTag.textContent = "READY";
+    }
+    if (window.lucide) lucide.createIcons();
   }
 
   function parseTimeStringToSeconds(timeStr) {
@@ -969,6 +1023,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Executive Brief Generation Trigger ---
   async function generateExecutiveBrief() {
     if (!currentRecordingId) return;
+
+    if (!currentSegments || currentSegments.length === 0) {
+      alert("Cannot generate brief: No transcript segments exist for this recording yet. Please wait for audio transcription to complete.");
+      return;
+    }
+
     briefPromptContainer.classList.add("hidden");
     briefContentContainer.classList.add("hidden");
     briefLoadingContainer.classList.remove("hidden");
