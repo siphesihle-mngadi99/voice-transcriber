@@ -7,6 +7,11 @@ import subprocess
 import threading
 import time
 from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import uvicorn
 from voice_transcriber.config import HOST, PORT
 
