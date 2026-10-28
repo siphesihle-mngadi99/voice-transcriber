@@ -129,6 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Executive Brief Elements
   const briefProviderName = document.getElementById("briefProviderName");
   const briefStatusTag = document.getElementById("briefStatusTag");
+  const downloadPdfBriefBtn = document.getElementById("downloadPdfBriefBtn");
   const openLlmSettingsBtn = document.getElementById("openLlmSettingsBtn");
   const generateBriefBtn = document.getElementById("generateBriefBtn");
   const generateBriefBtnText = document.getElementById("generateBriefBtnText");
@@ -1357,6 +1358,13 @@ document.addEventListener("DOMContentLoaded", () => {
       exportDropdown.classList.add("hidden");
     });
   });
+
+  if (downloadPdfBriefBtn) {
+    downloadPdfBriefBtn.addEventListener("click", () => {
+      if (!currentRecordingId) return;
+      window.open(`/api/recordings/${currentRecordingId}/export?format=pdf`, "_blank");
+    });
+  }
 
   // --- Vault Drawer (With Back button & Backdrop) ---
   function openArchiveDrawer() {

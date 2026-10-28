@@ -54,6 +54,7 @@ from voice_transcriber.core.export import (
     export_vtt,
     export_txt,
     export_json,
+    export_pdf,
 )
 
 app = FastAPI(
@@ -401,7 +402,11 @@ def export_file(rec_id: str, format: str = "md"):
     base_name = Path(rec.get("filename", "recording")).stem
 
     fmt = format.lower()
-    if fmt == "md":
+    if fmt == "pdf":
+        content = export_pdf(rec, segments)
+        media_type = "application/pdf"
+        filename = f"{base_name}_executive_dossier.pdf"
+    elif fmt == "md":
         content = export_markdown(rec, segments)
         media_type = "text/markdown"
         filename = f"{base_name}_transcript.md"

@@ -252,18 +252,21 @@
               <i data-lucide="download" class="w-3.5 h-3.5"></i>
               <span>EXPORT</span>
             </button>
-            <div id="exportDropdown" class="hidden absolute right-0 mt-2 w-48 sm:w-52 bg-[#f1ead8] border-2 border-[#191717] p-1.5 z-50 text-xs font-mono shadow-[5px_5px_0px_#191717]">
+            <div id="exportDropdown" class="hidden absolute right-0 mt-2 w-48 sm:w-56 bg-[#f1ead8] border-2 border-[#191717] p-1.5 z-50 text-xs font-mono shadow-[5px_5px_0px_#191717]">
+              <button class="export-opt w-full text-left px-3 py-2 hover:bg-[#ff2f11] hover:text-white font-bold flex items-center gap-2 text-[#191717] transition-colors" data-format="pdf">
+                <span class="aya-badge-red text-[9px]">PDF</span> Executive Dossier (.pdf)
+              </button>
               <button class="export-opt w-full text-left px-3 py-2 hover:bg-[#e4fc51] font-bold flex items-center gap-2 text-[#191717]" data-format="md">
-                <span class="aya-badge-black text-[9px]">MD</span> Markdown
+                <span class="aya-badge-black text-[9px]">MD</span> Markdown (.md)
               </button>
               <button class="export-opt w-full text-left px-3 py-2 hover:bg-[#e4fc51] font-bold flex items-center gap-2 text-[#191717]" data-format="srt">
-                <span class="aya-badge-yellow text-[9px]">SRT</span> Subtitles
+                <span class="aya-badge-yellow text-[9px]">SRT</span> Subtitles (.srt)
               </button>
               <button class="export-opt w-full text-left px-3 py-2 hover:bg-[#e4fc51] font-bold flex items-center gap-2 text-[#191717]" data-format="txt">
-                <span class="aya-badge-white text-[9px]">TXT</span> Plain Text
+                <span class="aya-badge-white text-[9px]">TXT</span> Plain Text (.txt)
               </button>
               <button class="export-opt w-full text-left px-3 py-2 hover:bg-[#e4fc51] font-bold flex items-center gap-2 text-[#191717]" data-format="json">
-                <span class="aya-badge-red text-[9px]">JSON</span> Raw JSON
+                <span class="aya-badge-black text-[9px]">JSON</span> Raw JSON (.json)
               </button>
             </div>
           </div>
@@ -340,6 +343,10 @@
             <span id="briefStatusTag" class="text-[11px] font-mono text-[#191717]/70 font-bold uppercase tracking-wider">READY</span>
           </div>
           <div class="flex items-center gap-2.5">
+            <button id="downloadPdfBriefBtn" class="aya-btn-white py-1.5 px-3 text-xs font-mono font-bold flex items-center gap-1.5 border-2 border-[#191717] hover:bg-[#e4fc51]" title="Download Executive PDF Dossier">
+              <i data-lucide="file-down" class="w-3.5 h-3.5 text-[#ff2f11]"></i>
+              <span class="hidden sm:inline">EXPORT PDF</span>
+            </button>
             <button id="openLlmSettingsBtn" class="aya-btn-white py-1.5 px-3 text-xs font-mono font-bold flex items-center gap-1.5" title="Configure Groq, Gemini, or Ollama">
               <i data-lucide="settings" class="w-3.5 h-3.5"></i>
               <span class="hidden sm:inline">AI SETTINGS</span>

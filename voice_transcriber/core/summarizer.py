@@ -14,8 +14,6 @@ GROQ_MODELS = [
     "openai/gpt-oss-120b",
     "openai/gpt-oss-20b",
     "qwen/qwen3.8-27b",
-    "llama-3.3-70b-versatile",
-    "llama-3.1-8b-instant",
 ]
 
 CONFIG_FILE = DATA_DIR / "llm_config.json"
@@ -121,34 +119,48 @@ def format_transcript_for_llm(segments: List[Dict[str, Any]], max_chars: int = 1
     return full
 
 
-SYSTEM_PROMPT = """You are an expert executive meeting assistant, lecture synthesizer, and note taker.
-Your task is to analyze the provided conversation/lecture transcript and generate structured, highly actionable notes.
+SYSTEM_PROMPT = """You are an elite executive intelligence synthesizer, meeting strategist, and lecture note architect.
+Your task is to analyze the provided conversation/lecture transcript and generate an exhaustive, deeply detailed, boardroom-ready Executive Dossier in structured JSON.
 
-IMPORTANT RULES:
-1. Do NOT use emojis anywhere in your response. Keep the tone professional, objective, and clear.
-2. Output MUST strictly be valid JSON without conversational preamble or markdown backticks around the json.
-3. Structure the "overview" into 2-3 distinct, well-separated narrative paragraphs using double newlines (\\n\\n). Paragraph 1 must state the primary thesis and executive consensus. Paragraph 2 must detail key proposals and debates. Paragraph 3 must capture conclusions and next milestones.
-4. Extract precise ideas, feedback, decisions, suggestions, and action items.
+CRITICAL INSTRUCTIONS:
+1. STRICTLY NO EMOJIS anywhere in your output. Maintain a professional, authoritative, analytical, and objective tone.
+2. Output MUST strictly be valid JSON without conversational preamble or markdown code fences.
+3. EXECUTIVE OVERVIEW REQUIREMENT:
+   The "overview" field MUST NOT be short, brief, or superficial. It MUST be an exhaustive, multi-paragraph strategic dossier consisting of 4 to 6 substantial paragraphs, separated by double newlines (\\n\\n):
+   - Paragraph 1 (Strategic Thesis & Core Consensus): The primary objective of the session, the overarching strategic context, and the fundamental consensus or conclusion reached by the participants.
+   - Paragraph 2 (Problem Context, Background & Market Dynamics): The operational, market, or technical background driving the discussion, core bottlenecks identified, and why this matters now.
+   - Paragraph 3 (Core Deliberations & Technical/Operational Mechanics): Detailed breakdown of the technical architectures, operational workflows, systems, or specific proposals analyzed during the conversation.
+   - Paragraph 4 (Debates, Divergent Perspectives & Trade-offs): Key tensions, alternative approaches evaluated, disagreements or pushbacks raised by participants, and the explicit rationale for choices made.
+   - Paragraph 5 (Risk Matrix, Dependencies & Governance): Potential points of failure, edge cases, regulatory or compliance considerations, resource constraints, and contingency plans discussed.
+   - Paragraph 6 (Milestone Trajectory & Forward-Looking Roadmap): Clear operational horizon, target milestones, timeline expectations, and strategic success criteria.
+4. GRANULAR FEEDBACK & TAKEAWAYS:
+   Provide 6 to 10 distinct, substantive items under "feedback". Each must capture an exact critique, consensus decision, policy constraint, or stakeholder feedback, along with rich speaker attribution and context.
+5. STRATEGIC PROPOSALS & BRAINSTORMING VAULT:
+   Provide 6 to 10 creative, strategic, or operational concepts under "ideas". Each must feature an articulate title and a detailed multi-sentence description detailing the mechanics and intended impact.
+6. ACTION ITEMS:
+   Extract all concrete tasks under "action_items" with a clear deliverable task description, specific owner/team, and relevant timestamp (MM:SS).
+7. AGENDA CHAPTERS:
+   Break down the transcript into chronological chapters under "chapters" with start_time (in seconds) and a comprehensive summary.
 
 JSON SCHEMA:
 {
-  "overview": "Multi-paragraph strategic narrative separated by double newlines (\\n\\n). Paragraph 1: Primary takeaway & executive consensus. Paragraph 2: Strategic discussions & proposals. Paragraph 3: Decisions & outcomes.",
+  "overview": "Exhaustive 4-6 paragraph strategic narrative separated by double newlines (\\n\\n). Para 1: Strategic Thesis & Core Consensus.\\n\\nPara 2: Problem Context & Landscape.\\n\\nPara 3: Technical & Operational Mechanics.\\n\\nPara 4: Debates & Trade-offs.\\n\\nPara 5: Risks & Dependencies.\\n\\nPara 6: Forward-Looking Roadmap.",
   "feedback": [
     {
-      "point": "Concise summary of feedback, critique, consensus, or decision made",
+      "point": "Concise, substantive feedback, decision, critique, or consensus point",
       "context": "Context or speaker attribution explaining the feedback"
     }
   ],
   "ideas": [
     {
-      "title": "Title of the idea or concept",
-      "description": "Explanation of the creative proposal, brainstormed concept, or suggestion"
+      "title": "Title of the proposal or brainstormed concept",
+      "description": "Comprehensive multi-sentence explanation of the proposal, mechanics, and value"
     }
   ],
   "action_items": [
     {
-      "task": "Specific actionable next step",
-      "owner": "Person or team responsible, or 'Unassigned'",
+      "task": "Specific actionable next step or deliverable",
+      "owner": "Person, role, or team responsible, or 'Unassigned'",
       "timestamp": "MM:SS timestamp where this was discussed"
     }
   ],
@@ -156,7 +168,7 @@ JSON SCHEMA:
     {
       "title": "Chapter or agenda topic title",
       "start_time": 0,
-      "summary": "1-2 sentence summary of this chapter"
+      "summary": "Descriptive summary of this section's core subject matter and progression"
     }
   ]
 }
@@ -202,6 +214,7 @@ def call_groq(api_key: str, transcript: str, model: Optional[str] = None) -> Dic
                 {"role": "user", "content": f"Here is the transcript:\n\n{transcript}\n\nGenerate the structured notes JSON now."},
             ],
             "temperature": 0.2,
+            "max_tokens": 3000,
             "response_format": {"type": "json_object"},
         }
         try:
@@ -236,6 +249,7 @@ def call_gemini(api_key: str, transcript: str, model: str = "gemini-1.5-flash") 
         ],
         "generationConfig": {
             "temperature": 0.2,
+            "maxOutputTokens": 3500,
             "responseMimeType": "application/json",
         },
     }
@@ -258,7 +272,7 @@ def call_ollama(host: str, model: str, transcript: str) -> Dict[str, Any]:
         ],
         "stream": False,
         "format": "json",
-        "options": {"temperature": 0.2},
+        "options": {"temperature": 0.2, "num_predict": 3500},
     }
     res = requests.post(url, json=payload, timeout=120)
     if not res.ok:
