@@ -132,6 +132,7 @@ def main():
             host=HOST,
             port=PORT,
             log_level="warning",
+            reload=True,
         )
     finally:
         if tunnel_proc:
