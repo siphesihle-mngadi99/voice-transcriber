@@ -1,6 +1,8 @@
 @echo off
-title VoiceScribe - Local Audio Transcriber
+title VoiceScribe - Audio Transcriber and Note Synthesizer
 cd /d "%~dp0"
-echo Starting VoiceScribe with Global Cloudflare Tunnel...
+echo ============================================================
+echo  Starting VoiceScribe with Global Cloudflare Tunnel...
+echo ============================================================
 .\.venv\Scripts\python.exe run.py --share
 pause
