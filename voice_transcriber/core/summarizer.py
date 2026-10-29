@@ -9,11 +9,11 @@ from voice_transcriber.config import DATA_DIR
 from voice_transcriber.core.database import get_segments, save_recording_summary, get_recording
 
 DEFAULT_GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-DEFAULT_GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+DEFAULT_GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 GROQ_MODELS = [
-    "openai/gpt-oss-120b",
     "openai/gpt-oss-20b",
     "qwen/qwen3.8-27b",
+    "openai/gpt-oss-120b",
 ]
 
 CONFIG_FILE = DATA_DIR / "llm_config.json"
@@ -38,7 +38,7 @@ def get_llm_config() -> Dict[str, Any]:
             pass
     if not config.get("groq_api_key"):
         config["groq_api_key"] = DEFAULT_GROQ_API_KEY
-    if not config.get("groq_model"):
+    if not config.get("groq_model") or config.get("groq_model") == "openai/gpt-oss-120b":
         config["groq_model"] = DEFAULT_GROQ_MODEL
     return config
 
@@ -191,11 +191,13 @@ def _extract_json(text: str) -> Dict[str, Any]:
 
 
 def call_groq(api_key: str, transcript: str, model: Optional[str] = None) -> Dict[str, Any]:
-    """Generates notes via Groq cloud API with automatic model fallback."""
+    """Generates notes via Groq cloud API with automatic model fallback and connection retry."""
+    import time
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {api_key.strip()}",
         "Content-Type": "application/json",
+        "Connection": "close",
     }
 
     candidates = []
@@ -217,23 +219,26 @@ def call_groq(api_key: str, transcript: str, model: Optional[str] = None) -> Dic
             "max_tokens": 3000,
             "response_format": {"type": "json_object"},
         }
-        try:
-            res = requests.post(url, json=payload, headers=headers, timeout=60)
-            if res.status_code in (400, 404):
-                last_error = f"Model {cand} unavailable ({res.status_code}): {res.text}"
-                continue
-            if not res.ok:
-                raise ValueError(f"Groq API error ({res.status_code}): {res.text}")
-            data = res.json()
-            content = data["choices"][0]["message"]["content"]
-            result = _extract_json(content)
-            result["used_model"] = cand
-            return result
-        except Exception as e:
-            last_error = str(e)
-            if "not exist" in str(e).lower() or "404" in str(e) or "400" in str(e):
-                continue
-            raise
+        for attempt in range(2):
+            try:
+                res = requests.post(url, json=payload, headers=headers, timeout=60)
+                if res.status_code in (400, 404, 429, 500, 502, 503, 504):
+                    last_error = f"Model {cand} returned status {res.status_code}: {res.text}"
+                    break  # Try next model candidate
+                if not res.ok:
+                    raise ValueError(f"Groq API error ({res.status_code}): {res.text}")
+                data = res.json()
+                content = data["choices"][0]["message"]["content"]
+                result = _extract_json(content)
+                result["used_model"] = cand
+                return result
+            except Exception as e:
+                last_error = f"Model {cand}: {str(e)}"
+                if attempt == 0 and ("remote" in str(e).lower() or "connection" in str(e).lower()):
+                    time.sleep(1.0)
+                    continue
+                # Fall through to try next candidate
+                break
 
     raise ValueError(f"All Groq models failed. Last error: {last_error}")
 
