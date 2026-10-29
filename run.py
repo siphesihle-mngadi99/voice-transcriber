@@ -7,6 +7,7 @@ import subprocess
 import threading
 import time
 from pathlib import Path
+from typing import Optional
 
 ROOT_DIR = Path(__file__).resolve().parent
 if str(ROOT_DIR) not in sys.path:
@@ -62,6 +63,22 @@ def get_local_ip() -> str:
     finally:
         s.close()
     return ip
+
+
+def start_ngrok_tunnel(port: int, authtoken: str, domain: Optional[str] = None) -> Optional[str]:
+    """Starts an ngrok tunnel using pyngrok with optional permanent custom domain."""
+    try:
+        from pyngrok import ngrok
+        ngrok.set_auth_token(authtoken.strip())
+        options = {"proto": "http", "addr": port}
+        if domain and domain.strip():
+            clean_dom = domain.strip().replace("https://", "").replace("http://", "").rstrip("/")
+            options["domain"] = clean_dom
+        tunnel = ngrok.connect(**options)
+        return str(tunnel.public_url).replace("http://", "https://")
+    except Exception as e:
+        print(f" [!] Ngrok tunnel initialization failed: {e}")
+        return None
 
 
 def start_tunnel_thread(port: int, on_url_found):
@@ -123,25 +140,51 @@ def main():
 
     share_mode = "--share" in sys.argv or "-s" in sys.argv
     tunnel_proc = None
+    ngrok_active = False
+
+    ngrok_token = os.getenv("NGROK_AUTHTOKEN", "").strip()
+    ngrok_domain = os.getenv("NGROK_DOMAIN", "").strip()
 
     if share_mode:
-        print(" Starting Cloudflare Tunnel... please wait a few seconds...")
-        public_url_container = []
+        if ngrok_token:
+            print(" Starting Permanent Ngrok Tunnel...")
+            public_url = start_ngrok_tunnel(PORT, ngrok_token, ngrok_domain)
+            if public_url:
+                ngrok_active = True
+                print_banner(public_url=public_url)
+            else:
+                print(" [!] Falling back to Cloudflare Tunnel...")
+                public_url_container = []
 
-        def on_url(url):
-            public_url_container.append(url)
-            print_banner(public_url=url)
+                def on_url(url):
+                    public_url_container.append(url)
+                    print_banner(public_url=url)
 
-        tunnel_proc = start_tunnel_thread(PORT, on_url)
+                tunnel_proc = start_tunnel_thread(PORT, on_url)
+                for _ in range(20):
+                    if public_url_container:
+                        break
+                    time.sleep(0.2)
+                if not public_url_container:
+                    print_banner()
+        else:
+            print(" Starting Cloudflare Tunnel... please wait a few seconds...")
+            public_url_container = []
 
-        # Give the tunnel up to 4 seconds to output the initial link
-        for _ in range(20):
-            if public_url_container:
-                break
-            time.sleep(0.2)
+            def on_url(url):
+                public_url_container.append(url)
+                print_banner(public_url=url)
 
-        if not public_url_container:
-            print_banner()
+            tunnel_proc = start_tunnel_thread(PORT, on_url)
+
+            # Give the tunnel up to 4 seconds to output the initial link
+            for _ in range(20):
+                if public_url_container:
+                    break
+                time.sleep(0.2)
+
+            if not public_url_container:
+                print_banner()
     else:
         print_banner()
 
@@ -157,6 +200,13 @@ def main():
         if tunnel_proc:
             print("\nShutting down Cloudflare Tunnel...")
             tunnel_proc.terminate()
+        if ngrok_active:
+            try:
+                from pyngrok import ngrok
+                print("\nShutting down Ngrok Tunnel...")
+                ngrok.kill()
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":
