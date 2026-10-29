@@ -530,7 +530,7 @@ def export_pdf(
                 Paragraph(_esc(ts), style_td),
             ])
 
-        act_table = Table(act_rows, colWidths=[24, 338, 100, 70])
+        act_table = Table(act_rows, colWidths=[24, 338, 100, 70], repeatRows=1)
         act_style = [
             ("BACKGROUND", (0, 0), (-1, 0), DEEP_INK),
             ("BOX", (0, 0), (-1, -1), 1.5, DEEP_INK),
@@ -546,7 +546,7 @@ def export_pdf(
             act_style.append(("BACKGROUND", (0, i), (-1, i), bg))
 
         act_table.setStyle(TableStyle(act_style))
-        story.append(KeepTogether(act_table))
+        story.append(act_table)
         story.append(Spacer(1, 12))
 
     # --- SECTION 5: AGENDA CHAPTERS & TIMELINE ---
@@ -580,7 +580,7 @@ def export_pdf(
                 content_cell,
             ])
 
-        chap_table = Table(chap_rows, colWidths=[65, 467])
+        chap_table = Table(chap_rows, colWidths=[65, 467], repeatRows=1)
         chap_style = [
             ("BACKGROUND", (0, 0), (-1, 0), DEEP_INK),
             ("BOX", (0, 0), (-1, -1), 1.5, DEEP_INK),
@@ -596,7 +596,7 @@ def export_pdf(
             chap_style.append(("BACKGROUND", (0, i), (-1, i), bg))
 
         chap_table.setStyle(TableStyle(chap_style))
-        story.append(KeepTogether(chap_table))
+        story.append(chap_table)
         story.append(Spacer(1, 12))
 
     # --- SECTION 6: VERBATIM DIALOGUE TRANSCRIPT (APPENDIX) ---

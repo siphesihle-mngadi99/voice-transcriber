@@ -1,35 +1,43 @@
+import wave
 import subprocess
-import shutil
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 import numpy as np
 from sklearn.cluster import AgglomerativeClustering
 from voice_transcriber.core.audio import get_ffmpeg_path
 
 
-def extract_segment_features(audio_path: Path, start: float, duration: float) -> np.ndarray:
-    """Extracts acoustic spectral and energy features for a specific audio slice
-    using FFmpeg and numpy, running smoothly on CPU without external weights.
+def load_audio_mono_16k(audio_path: Path) -> Tuple[np.ndarray, int]:
+    """Loads a normalized 16kHz WAV file into an in-memory float32 numpy array.
+    Runs instantaneously without spawning child processes.
     """
-    ffmpeg_bin = get_ffmpeg_path()
-    # Extract 16kHz mono raw s16le PCM for the given window
-    cmd = [
-        ffmpeg_bin,
-        "-nostdin",
-        "-ss", str(max(0.0, start)),
-        "-t", str(max(0.1, duration)),
-        "-i", str(audio_path),
-        "-f", "s16le",
-        "-ac", "1",
-        "-ar", "16000",
-        "-",
-    ]
+    try:
+        with wave.open(str(audio_path), "rb") as wf:
+            sr = wf.getframerate()
+            nframes = wf.getnframes()
+            data = np.frombuffer(wf.readframes(nframes), dtype=np.int16).astype(np.float32) / 32768.0
+            return data, sr
+    except Exception:
+        # Fallback to FFmpeg stream decoding if wave fails
+        ffmpeg_bin = get_ffmpeg_path()
+        cmd = [
+            ffmpeg_bin,
+            "-nostdin",
+            "-i", str(audio_path),
+            "-f", "s16le",
+            "-ac", "1",
+            "-ar", "16000",
+            "-",
+        ]
+        proc = subprocess.run(cmd, capture_output=True)
+        if proc.returncode != 0 or not proc.stdout:
+            return np.zeros(0, dtype=np.float32), 16000
+        data = np.frombuffer(proc.stdout, dtype=np.int16).astype(np.float32) / 32768.0
+        return data, 16000
 
-    proc = subprocess.run(cmd, capture_output=True)
-    if proc.returncode != 0 or not proc.stdout:
-        return np.zeros(32, dtype=np.float32)
 
-    raw = np.frombuffer(proc.stdout, dtype=np.int16).astype(np.float32) / 32768.0
+def compute_audio_features(raw: np.ndarray) -> np.ndarray:
+    """Computes acoustic spectral and energy features on an in-memory audio slice."""
     if len(raw) < 160:
         return np.zeros(32, dtype=np.float32)
 
@@ -40,12 +48,12 @@ def extract_segment_features(audio_path: Path, start: float, duration: float) ->
 
     # Divide spectrum into 16 frequency bands (bark-scale approximation)
     bands = np.array_split(fft_vals, 16)
-    band_energies = [np.mean(b) if len(b) > 0 else 0.0 for b in bands]
+    band_energies = [float(np.mean(b)) if len(b) > 0 else 0.0 for b in bands]
 
-    # Temporal dynamics: RMS energy, zero-crossing rate, variance
-    rms = np.sqrt(np.mean(raw**2))
-    zcr = np.mean(np.abs(np.diff(np.sign(raw)))) / 2.0
-    spectral_centroid = np.sum(np.arange(len(fft_vals)) * fft_vals) / (np.sum(fft_vals) + 1e-9)
+    # Temporal dynamics: RMS energy, zero-crossing rate, spectral centroid
+    rms = float(np.sqrt(np.mean(raw**2)))
+    zcr = float(np.mean(np.abs(np.diff(np.sign(raw)))) / 2.0)
+    spectral_centroid = float(np.sum(np.arange(len(fft_vals)) * fft_vals) / (np.sum(fft_vals) + 1e-9))
 
     # Feature vector normalized
     features = np.array(band_energies + [rms, zcr, spectral_centroid / 1000.0], dtype=np.float32)
@@ -59,6 +67,16 @@ def extract_segment_features(audio_path: Path, start: float, duration: float) ->
     return padded
 
 
+def extract_segment_features(audio_path: Path, start: float, duration: float) -> np.ndarray:
+    """Backwards-compatible feature extractor for single audio slices."""
+    audio_data, sr = load_audio_mono_16k(audio_path)
+    if len(audio_data) == 0:
+        return np.zeros(32, dtype=np.float32)
+    start_sample = int(max(0.0, start) * sr)
+    end_sample = min(len(audio_data), int(max(0.0, start + duration) * sr))
+    return compute_audio_features(audio_data[start_sample:end_sample])
+
+
 def diarize_segments(
     audio_path: Path,
     segments: List[Dict[str, Any]],
@@ -66,16 +84,20 @@ def diarize_segments(
     distance_threshold: float = 0.45,
 ) -> List[Dict[str, Any]]:
     """Assigns speaker labels (Speaker 1, Speaker 2, ...) to transcribed segments
-    using acoustic feature extraction and Agglomerative Clustering.
-    
-    If num_speakers is 0, the number of speakers is automatically estimated
-    using distance_threshold.
+    using in-memory acoustic feature extraction and Agglomerative Clustering.
     """
     if not segments:
         return []
 
     if len(segments) == 1:
         segments[0]["speaker"] = "Speaker 1"
+        return segments
+
+    # Load audio file ONCE in memory instead of spawning hundreds of FFmpeg processes
+    audio_data, sr = load_audio_mono_16k(audio_path)
+    if len(audio_data) == 0:
+        for seg in segments:
+            seg["speaker"] = "Speaker 1"
         return segments
 
     features_list = []
@@ -86,7 +108,11 @@ def diarize_segments(
         end = seg.get("end", 0.0)
         dur = max(0.2, end - start)
 
-        feat = extract_segment_features(audio_path, start, dur)
+        start_sample = int(max(0.0, start) * sr)
+        end_sample = min(len(audio_data), int(max(0.0, start + dur) * sr))
+        raw_slice = audio_data[start_sample:end_sample]
+
+        feat = compute_audio_features(raw_slice)
         if np.any(feat):
             features_list.append(feat)
             valid_indices.append(idx)

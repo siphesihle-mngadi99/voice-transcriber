@@ -4,6 +4,7 @@ import asyncio
 import json
 from pathlib import Path
 from typing import Optional, Dict, Any, List
+from contextlib import asynccontextmanager
 from fastapi import (
     FastAPI,
     UploadFile,
@@ -57,10 +58,22 @@ from voice_transcriber.core.export import (
     export_pdf,
 )
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global _MAIN_LOOP
+    try:
+        _MAIN_LOOP = asyncio.get_running_loop()
+    except RuntimeError:
+        pass
+    init_db()
+    yield
+
+
 app = FastAPI(
     title="VoiceScribe",
     description="Local-First Long-Form Audio Transcriber & Note Synthesizer",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 # Enable CORS for local network and mobile access
@@ -74,13 +87,20 @@ app.add_middleware(
 
 # Real-time event subscribers: {recording_id: [asyncio.Queue]}
 _EVENT_LISTENERS: Dict[str, List[asyncio.Queue]] = {}
+_MAIN_LOOP: Optional[asyncio.AbstractEventLoop] = None
 
 
 def broadcast_event(recording_id: str, payload: Dict[str, Any]):
-    """Pushes a live progress update to all connected SSE clients."""
+    """Pushes a live progress update to all connected SSE clients in a thread-safe manner."""
     if recording_id in _EVENT_LISTENERS:
         for queue in _EVENT_LISTENERS[recording_id]:
-            queue.put_nowait(payload)
+            if _MAIN_LOOP and _MAIN_LOOP.is_running():
+                _MAIN_LOOP.call_soon_threadsafe(queue.put_nowait, payload)
+            else:
+                try:
+                    queue.put_nowait(payload)
+                except Exception:
+                    pass
 
 
 class SpeakerUpdateModel(BaseModel):
@@ -102,9 +122,7 @@ class SummarizeRequestModel(BaseModel):
 
 
 
-@app.on_event("startup")
-def on_startup():
-    init_db()
+
 
 
 # Mount static directory for frontend
@@ -270,6 +288,13 @@ def generate_summary(rec_id: str, req: Optional[SummarizeRequestModel] = None):
 @app.get("/api/recordings/{rec_id}/events")
 async def stream_events(rec_id: str):
     """Server-Sent Events (SSE) endpoint for real-time transcription progress."""
+    global _MAIN_LOOP
+    if _MAIN_LOOP is None:
+        try:
+            _MAIN_LOOP = asyncio.get_running_loop()
+        except RuntimeError:
+            pass
+
     queue = asyncio.Queue()
     if rec_id not in _EVENT_LISTENERS:
         _EVENT_LISTENERS[rec_id] = []
@@ -298,8 +323,11 @@ async def stream_events(rec_id: str):
                 except asyncio.TimeoutError:
                     yield ": ping\n\n"
         finally:
-            if rec_id in _EVENT_LISTENERS and queue in _EVENT_LISTENERS[rec_id]:
-                _EVENT_LISTENERS[rec_id].remove(queue)
+            if rec_id in _EVENT_LISTENERS:
+                if queue in _EVENT_LISTENERS[rec_id]:
+                    _EVENT_LISTENERS[rec_id].remove(queue)
+                if not _EVENT_LISTENERS[rec_id]:
+                    del _EVENT_LISTENERS[rec_id]
 
     return StreamingResponse(
         event_generator(),
@@ -350,12 +378,28 @@ async def stream_audio(rec_id: str, request: Request):
         content_type = "audio/mp4"
 
     if range_header:
-        # Parse range header: "bytes=start-end"
+        # Parse range header: "bytes=start-end", "bytes=start-", or "bytes=-suffix"
         range_value = range_header.strip().lower().replace("bytes=", "")
         parts = range_value.split("-")
-        start = int(parts[0]) if parts[0] else 0
-        end = int(parts[1]) if len(parts) > 1 and parts[1] else file_size - 1
-        end = min(end, file_size - 1)
+        try:
+            if parts[0] == "":
+                # Suffix byte range: bytes=-500 -> last 500 bytes
+                suffix = int(parts[1])
+                start = max(0, file_size - suffix)
+                end = file_size - 1
+            elif len(parts) > 1 and parts[1]:
+                start = int(parts[0])
+                end = min(int(parts[1]), file_size - 1)
+            else:
+                start = int(parts[0])
+                end = file_size - 1
+        except (ValueError, IndexError):
+            return Response(status_code=400, content="Invalid range header")
+
+        if start >= file_size or start > end:
+            headers = {"Content-Range": f"bytes */{file_size}"}
+            return Response(status_code=416, headers=headers)
+
         chunk_size = (end - start) + 1
 
         def iter_file():

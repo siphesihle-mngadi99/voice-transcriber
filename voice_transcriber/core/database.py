@@ -1,12 +1,13 @@
 import sqlite3
 from typing import List, Dict, Optional, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from voice_transcriber.config import DB_PATH
 
 
 def get_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
     return conn
 
 
@@ -59,7 +60,7 @@ def init_db() -> None:
 
 
 def create_recording(rec_id: str, filename: str, file_path: str, title: Optional[str] = None) -> None:
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     with get_connection() as conn:
         conn.execute(
             """
@@ -106,21 +107,24 @@ def save_segments(rec_id: str, segments: List[Dict[str, Any]]) -> None:
     with get_connection() as conn:
         # Clear existing segments if re-processing
         conn.execute("DELETE FROM segments WHERE recording_id = ?", (rec_id,))
-        for idx, seg in enumerate(segments):
-            conn.execute(
-                """
-                INSERT INTO segments (recording_id, segment_index, start_time, end_time, text, speaker)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    rec_id,
-                    idx,
-                    seg.get("start", 0.0),
-                    seg.get("end", 0.0),
-                    seg.get("text", "").strip(),
-                    seg.get("speaker", "Speaker 1"),
-                ),
+        rows = [
+            (
+                rec_id,
+                idx,
+                seg.get("start", 0.0),
+                seg.get("end", 0.0),
+                seg.get("text", "").strip(),
+                seg.get("speaker", "Speaker 1"),
             )
+            for idx, seg in enumerate(segments)
+        ]
+        conn.executemany(
+            """
+            INSERT INTO segments (recording_id, segment_index, start_time, end_time, text, speaker)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            rows,
+        )
         conn.commit()
 
 

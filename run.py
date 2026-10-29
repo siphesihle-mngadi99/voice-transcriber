@@ -25,16 +25,28 @@ def free_port(port: int):
     """Frees the port if an orphaned process is holding it from a previous run."""
     try:
         current_pid = os.getpid()
-        cmd = f'powershell -Command "Get-NetTCPConnection -LocalPort {port} -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess"'
-        out = subprocess.check_output(cmd, shell=True, text=True).strip()
-        if out:
-            for p in out.splitlines():
-                p = p.strip()
-                if p.isdigit():
-                    pid = int(p)
-                    if pid != current_pid and pid != 0:
-                        subprocess.run(f"taskkill /F /PID {pid}", shell=True, capture_output=True)
-            time.sleep(0.5)
+        if sys.platform == "win32":
+            cmd = f'powershell -Command "Get-NetTCPConnection -LocalPort {port} -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess"'
+            out = subprocess.check_output(cmd, shell=True, text=True).strip()
+            if out:
+                for p in out.splitlines():
+                    p = p.strip()
+                    if p.isdigit():
+                        pid = int(p)
+                        if pid != current_pid and pid != 0:
+                            subprocess.run(f"taskkill /F /PID {pid}", shell=True, capture_output=True)
+                time.sleep(0.5)
+        else:
+            cmd = f"lsof -t -i:{port}"
+            out = subprocess.check_output(cmd, shell=True, text=True).strip()
+            if out:
+                for p in out.splitlines():
+                    p = p.strip()
+                    if p.isdigit():
+                        pid = int(p)
+                        if pid != current_pid and pid != 0:
+                            subprocess.run(f"kill -9 {pid}", shell=True, capture_output=True)
+                time.sleep(0.5)
     except Exception:
         pass
 
@@ -75,11 +87,13 @@ def start_tunnel_thread(port: int, on_url_found):
 
     def monitor():
         url_regex = re.compile(r"https://[a-zA-Z0-9-]+\.trycloudflare\.com")
+        found_url = False
         for line in proc.stdout:
-            match = url_regex.search(line)
-            if match:
-                on_url_found(match.group(0))
-                break
+            if not found_url:
+                match = url_regex.search(line)
+                if match:
+                    on_url_found(match.group(0))
+                    found_url = True
 
     t = threading.Thread(target=monitor, daemon=True)
     t.start()
