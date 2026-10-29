@@ -66,19 +66,35 @@ def get_local_ip() -> str:
 
 
 def start_ngrok_tunnel(port: int, authtoken: str, domain: Optional[str] = None) -> Optional[str]:
-    """Starts an ngrok tunnel using pyngrok with optional permanent custom domain."""
+    """Starts an ngrok tunnel using the official ngrok SDK (no external binary needed)."""
     try:
-        from pyngrok import ngrok
-        ngrok.set_auth_token(authtoken.strip())
-        options = {"proto": "http", "addr": port}
+        import ngrok as ngrok_sdk
+        clean_dom = None
         if domain and domain.strip():
             clean_dom = domain.strip().replace("https://", "").replace("http://", "").rstrip("/")
-            options["domain"] = clean_dom
-        tunnel = ngrok.connect(**options)
-        return str(tunnel.public_url).replace("http://", "https://")
+        kwargs = {"authtoken": authtoken.strip()}
+        if clean_dom:
+            kwargs["domain"] = clean_dom
+        listener = ngrok_sdk.forward(port, **kwargs)
+        url = listener.url()
+        if url and url.startswith("http://"):
+            url = "https://" + url[len("http://"):]
+        return url
     except Exception as e:
         print(f" [!] Ngrok tunnel initialization failed: {e}")
-        return None
+        # Fall back to pyngrok if official SDK fails
+        try:
+            from pyngrok import ngrok as pyngrok
+            pyngrok.set_auth_token(authtoken.strip())
+            options = {"proto": "http", "addr": port}
+            if domain and domain.strip():
+                clean_dom = domain.strip().replace("https://", "").replace("http://", "").rstrip("/")
+                options["domain"] = clean_dom
+            tunnel = pyngrok.connect(**options)
+            return str(tunnel.public_url).replace("http://", "https://")
+        except Exception as e2:
+            print(f" [!] Pyngrok fallback also failed: {e2}")
+            return None
 
 
 def start_tunnel_thread(port: int, on_url_found):
@@ -202,9 +218,9 @@ def main():
             tunnel_proc.terminate()
         if ngrok_active:
             try:
-                from pyngrok import ngrok
+                import ngrok as ngrok_sdk
                 print("\nShutting down Ngrok Tunnel...")
-                ngrok.kill()
+                ngrok_sdk.kill()
             except Exception:
                 pass
 
